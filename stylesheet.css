@@ -1,0 +1,14 @@
+body, html {
+  padding: 0px;
+  margin: 0px;
+  background-color: aliceblue;
+}
+
+canvas {
+  background-color: aliceblue;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url('./res/OpenSans-Regular.ttf');
+}
