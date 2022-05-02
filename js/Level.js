@@ -525,8 +525,8 @@ class Level extends Phaser.Scene {
       let basedimensions = btoa([this.config.layout[0].length, this.config.layout.length]);
       let basetheme = btoa(this.config['theme']);
       console.log(atob(basedimensions));
-      let y = "http://127.0.0.1:8081/#"+baselayout+"#"+basedimensions+"#"+basetheme;
-      let x = window.open(y, "_blank");
+      let y = "https://james-hynes.github.io/TowerDefenseMapWebsite/#"+baselayout+"#"+basedimensions+"#"+basetheme;
+      window.open(y, "_blank");
       this.sound.add('uiclick').play();
       glow.destroy();
       this.tweens.add({
