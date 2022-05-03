@@ -1,5 +1,10 @@
-let theta=0;
+/**
+ * Class representing Title Screen scene
+ */
 class TitleScreen extends Phaser.Scene {
+  /**
+   * Creates a new Title Screen object
+   */
   constructor() {
     super("TitleScreen");
 
@@ -19,6 +24,9 @@ class TitleScreen extends Phaser.Scene {
     this.active=false;
   }
 
+  /**
+   * Loads Images, audio, etc.
+   */
   preload() {
     this.load.image("TitleScreenBackground", "./res/img/TitleScreenBackground.png");
     this.load.image("SettingsBackground", './res/img/settingsbackground.png');
@@ -63,10 +71,16 @@ class TitleScreen extends Phaser.Scene {
     this.load.image('moon', './res/img/moon.png');
   }
 
+  /**
+   * Called when scene starts, sets active to true
+   */
   init() {
     this.active=true;
   }
 
+  /**
+   * Sets up background graphics, buttons, etc.
+   */
   create() {
     this.dayOrNight=1;
     // Setup title screen graphics w layering
@@ -138,6 +152,9 @@ class TitleScreen extends Phaser.Scene {
     this.doDayNightCycle();
   }
 
+  /**
+   * Manages/updates planes, stars, day/night cycle, etc.
+   */
   update() {
     if(this.active) {
       // check for music setting changes
@@ -183,6 +200,9 @@ class TitleScreen extends Phaser.Scene {
     }
   }
 
+  /**
+   * Moves moon/sun back and forth, changing graphics each time they leave the screen
+   */
   doDayNightCycle() {
     // setup path of sun/moon and star animation infinitely repeating
     this.sunpath = new Phaser.Curves.Path(-50, 500);
@@ -206,6 +226,10 @@ class TitleScreen extends Phaser.Scene {
     })
   }
 
+  /**
+   * Gets settings data from localStorage
+   * @returns {Object} Settings
+   */
   getLocalStorageSettings() {
     // pull local storage settings object
     let settings = localStorage.getItem('settings');
@@ -217,6 +241,11 @@ class TitleScreen extends Phaser.Scene {
     return this.settings;
   }
 
+  /**
+   * Changes and updates a setting in localStorage
+   * @param {String} setting Key of setting to change
+   * @param {number|String} value Value to change to
+   */
   changeSetting(setting, value) {
     // change settings value both in this.settings and in LocalStorage
     this.settings[setting] = value;
@@ -224,6 +253,11 @@ class TitleScreen extends Phaser.Scene {
     this.getLocalStorageSettings();
   }
 
+  /**
+   * Creates a new place to fly across screen
+   * @param {number} d Direction, either -1 or 1
+   * @param {string} c Color, ["Blue", "Green", "Red", "Yellow"]
+   */
   createPlane(d, c) {
     let dir = d || (Math.random() < 0.5 ? 1 : -1);
     let color = c || ["Blue", "Green", "Red", "Yellow"][Math.floor(Math.random()*4)];
@@ -233,6 +267,9 @@ class TitleScreen extends Phaser.Scene {
     this.backgroundLayer.add(p);
   }
 
+  /**
+   * Creates a new star on screen
+   */
   createStar() {
     let s = this.add.sprite(Math.random() * 1200, Math.random() * 300, "star", "star1.png").play('staranim');
     s.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -241,9 +278,9 @@ class TitleScreen extends Phaser.Scene {
     this.starLayer.add(s);
   }
 
-  doTrick(plane) {
-  }
-
+  /**
+   * Loads and displays the settings menu
+   */
   loadSettingsMenu() {
     let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
     this.settingsLayer = this.add.layer().setDepth(12);
@@ -314,6 +351,9 @@ class TitleScreen extends Phaser.Scene {
 
   }
 
+  /**
+   * Loads and displays the level select menu
+   */
   loadLevelSelect() {
     let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
     this.levelSelectLayer = this.add.layer().setDepth(1000);
@@ -435,11 +475,22 @@ class TitleScreen extends Phaser.Scene {
     });
   }
 
+  /**
+   * Gets medal in from given level select layer
+   * @param {Phaser.Layer} layer LevelSelectLayer
+   * @param {number} level Level to get medal for [0-9]
+   * @param {number} n Medal number [0-2]
+   */
   getMedal(layer, level, n) {
     let m = layer.getChildren().filter((a) => {return a.texture.key.includes("Medal")} );
     let index = level%5;
   }
 
+  /**
+   * Displays tooltip for level select screen
+   * @param {Phaser.GameObjects.Sprite} target Level preview user moused over
+   * @param {number} levelID ID of level selected 
+   */
   showToolTip(target, levelID) {
     if(levelID < 9) {
       this.clearToolTip();
@@ -457,10 +508,11 @@ class TitleScreen extends Phaser.Scene {
     } else {
       this.showRandomMapToolTip(target);
     }
-    
-
   }
 
+  /**
+   * Remove all tool tips from level
+   */
   clearToolTip() {
     for(let i = 0; i < this.activeTooltip.length; i++) {
       this.activeTooltip[i].destroy();
@@ -468,6 +520,11 @@ class TitleScreen extends Phaser.Scene {
     this.activeTooltip=[];
   }
 
+  /**
+   * Displays tooltip for level select screen for a randomly generated level
+   * @param {Phaser.GameObjects.Sprite} target Level preview user moused over
+   * @param {number} levelID ID of level selected 
+   */
   showRandomMapToolTip(target) {
     this.clearToolTip();
     let container = this.add.sprite(target.x-120, target.y, "beige_panel");

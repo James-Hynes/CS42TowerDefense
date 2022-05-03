@@ -1,3 +1,9 @@
+/**
+ * Returns 5 random points between 0-dimension[n]
+ *
+ * @param {number} dimensions The dimensions of the grid.
+ * @returns {number} 5 random points between [(0, dimensions[0]), (0, dimensions[1])].
+ */
 function genRandomPoints(dimensions) {
   let random_points = [[Math.floor(Math.random() * 4) + 3, Math.max(2, Math.floor(Math.random() * dimensions[1])-1)]];
   for(let i = 1; i < 5; i++) {
@@ -6,10 +12,13 @@ function genRandomPoints(dimensions) {
   }
   return random_points
 }
-
+/**
+ * Creates a 2d tile array with a 2x2 path.
+ * @param {number} difficulty The difficulty of the requested level 
+ * @returns {ProcGenPoint[][]} 2d tile array
+ */
 function generateLevel(difficulty) {
   let dimensions = [20, 12];
-
   random_points=genRandomPoints(dimensions);
 
   let startPoint=addPointAdjacentToPoint([0, Math.floor(Math.random() * 6)]);
@@ -48,23 +57,34 @@ function generateLevel(difficulty) {
   }
 
   let pad = padPath(m, sumPath, sumPath[0], pointMap);
-  if(!pad) {
+  if(typeof pad == "undefined") {
     return generateLevel(difficulty);
   }
   return m;
 }
 
+/**
+ * Get point at (x, y) from Tile array map.
+ * @param {Tile[][]} map the map to find the tile in
+ * @param {number} x the x coordinate of the tile
+ * @param {number} y the y coordinate of the tile
+ * @returns {Tile} Tile at specified location in specified map
+ */
 function getPoint(map, x, y) {
   if(map[y] && map[y][x]) {
     return map[y][x];
   }
 }
 
+/**
+ * Extend a 1x1 path into a 2x2 path, required for game to render path 
+ * @param {string[][]} map first map, contains tiles as strings (what will eventually be returned) 
+ * @param {ProcGenPoint[]} path the 1x1 path that has been created by genRandomLevel()
+ * @param {ProcGenPoint} start start location of path
+ * @param {ProcGenPoint[][]} map2 same as first map, but instead of strings the tiles are stored as Tile objects.
+ * @returns {boolean} true or undefined, depending on success.
+ */
 function padPath(map, path, start, map2) {
-  // i have absolutely no idea how this works anymore
-  // it went from completely broken to working in 99%+ of configs with almost 0 changes
-  // if i have time this will be rewritten, it's really dumb code and definitely holds back more interesting procedurally generated maps
-  // but it works for the time being
   let turns = [];
   let pathSegmentDirections = [];
   let turnDirections = [];
@@ -226,11 +246,17 @@ function padPath(map, path, start, map2) {
   for(let point of specialPadDisplay) {
     tmpMap[point[0].y][point[0].x]="C"+point[1]+point[2];
   }
-  console.log(tmpMap);
-  console.log(map);
   return true;
 }
-
+/**
+ * finds and returns the next path tile in a horizontal line from a given tile
+ * @param {ProcGenPoint[][]} map 2d tile array 
+ * @param {ProcGenPoint[]} path currently calculated path in order
+ * @param {ProcGenPoint} start location to begin search
+ * @param {number} direction left or right (-1, 1)
+ * @param {ProcGenPoint} nextTurn tile location of the next turn
+ * @returns {ProcGenPoint|boolean} false if no tile found, Tile if found
+ */
 function getNextHorizontalPathTile(map, path, start, direction, nextTurn) {
   if(direction === 1) {
     for(let i = start.x; i <= nextTurn.x; i++) {
@@ -248,6 +274,15 @@ function getNextHorizontalPathTile(map, path, start, direction, nextTurn) {
   return false;
 }
 
+/**
+ * finds and returns the next path tile in a vertical line from a given tile
+ * @param {ProcGenPoint[][]} map 2d tile array 
+ * @param {ProcGenPoint[]} path currently calculated path in order
+ * @param {ProcGenPoint} start location to begin search
+ * @param {number} direction up or down (-1, 1)
+ * @param {ProcGenPoint} nextTurn tile location of the next turn
+ * @returns {ProcGenPoint|false} false if no tile found, Tile if found
+ */
 function getNextVerticalPathTile(map, path, start, direction, nextTurn) {
   if(direction === 1) {
     for(let i = start.y; i <= nextTurn.y; i++) {
@@ -264,6 +299,12 @@ function getNextVerticalPathTile(map, path, start, direction, nextTurn) {
   }
 }
 
+/**
+ * Gets the direction of a path segment
+ * @param {ProcGenPoint} start Tile to start segment from
+ * @param {ProcGenPoint} end Tile to end segment on
+ * @returns {string} "Horizontal" or "Vertical"
+ */
 function getPathSegmentDirection(start, end) {
   if(Math.abs(start.x-end.x)>=1) {
     return "Horizontal";
@@ -272,6 +313,12 @@ function getPathSegmentDirection(start, end) {
   }
 }
 
+/**
+ * Get the direction of a given turn
+ * @param {ProcGenPoint} point turn to check direction of
+ * @param {ProcGenPoint} path path in order
+ * @returns {string} up, right, down, or left depending on next tile's location.
+ */
 function getTurnDirection(point, path) {
   let next = path[path.indexOf(point)+1];
   if(next.x > point.x) {
@@ -285,6 +332,12 @@ function getTurnDirection(point, path) {
   }
 }
 
+/**
+ * Gets the location of the next turn from a given point.
+ * @param {ProcGenPoint[]} path the current path of the level
+ * @param {ProcGenPoint} point the point to begin searching from
+ * @returns {ProcGenPoint|boolean} the next turn Tile if found, else false
+ */
 function getNextTurn(path, point) {
   let prevX;
   let prevY;
@@ -311,6 +364,12 @@ function getNextTurn(path, point) {
   return false;
 }
 
+/**
+ * Check if Tile is in a given list based on x/y
+ * @param {ProcGenPoint} point point to check existence of
+ * @param {ProcGenPoint[]} list list to check for point
+ * @returns {boolean} true if located, false otherwise
+ */
 function pointInList(point, list) {
   for(let tmpPoint of list) {
     if(tmpPoint.x == point.x && tmpPoint.y == point.y) {
@@ -320,6 +379,13 @@ function pointInList(point, list) {
   return false;
 }
 
+/**
+ * Does a breadth first search to find shortest path between two given points
+ * @param {ProcGenPoint[][]} map 2D tile map
+ * @param {ProcGenPoint} start tile to begin search
+ * @param {ProcGenPoint} end tile to end search upon finding
+ * @returns {ProcGenPoint[]|boolean} Tile array path if possible, else false
+ */
 function procGenBfs(map, start, end) {
   let p = [start];
   p[0].explored=true;
@@ -345,6 +411,10 @@ function procGenBfs(map, start, end) {
   return false;
 }
 
+/**
+ * Sets all tiles' explored value to false in a given map
+ * @param {ProcGenPoint[][]} map 2D Tilemap
+ */
 function unExploreMap(map) {
   for(let i = 0; i < map.length; i++) {
     for(let j = 0; j < map[i].length; j++) {
@@ -352,7 +422,6 @@ function unExploreMap(map) {
     }
   }
 }
-
 
 const THEME_KEY = {
   "dirt/grass": {"startLeft": 2, "startRight": 3, "endLeft": 25, "endRight": 26, "verticalLeft": 24, "verticalRight": 22, "horizontalTop": 46, "horizontalBottom": 0, "ground": [23, 161, 156], "insideTopRight": 45, "insideBottomLeft": 1, "insideBottomRight": 298, "insideTopLeft": 47, "outsideBottomRight": 26, "outsideBottomLeft": 25, "outsideTopLeft": 2, "outsideTopRight": 3},
@@ -369,6 +438,11 @@ const THEME_KEY = {
   "stone/sand": {"startLeft": 219, "startRight": 220, "endLeft": 242, "endRight": 243, "verticalLeft": 241, "verticalRight": 239, "horizontalTop": 263, "horizontalBottom": 217, "ground": [28, 97, 159, 240], "insideTopRight": 262, "insideBottomLeft": 218, "insideBottomRight": 216, "insideTopLeft": 264, "outsideBottomRight": 243, "outsideBottomLeft": 242, "outsideTopLeft": 219, "outsideTopRight": 220},
 }
 
+/**
+ * Creates a new point adjacent to a given point in a random location
+ * @param {ProcGenPoint} point given point to add random adjacent point to 
+ * @returns {ProcGenPoint[]} 2-length array of adjacent ProcGenPoints
+ */
 function addPointAdjacentToPoint(point) {
   let dimensions = [20, 12];
   let perm = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -382,6 +456,12 @@ function addPointAdjacentToPoint(point) {
   return [new ProcGenPoint(point[0], point[1]), newPoint];
 }
 
+/**
+ * gets adjacent tiles that exist on a given map at a given point
+ * @param {Array.<Array.<ProcGenPoint>>} map 2D Tile map
+ * @param {ProcGenPoint} point point to find adjacent tiles of
+ * @returns {ProcGenPoint[]} adjacent tiles or empty array
+ */
 function procGenGetAdjacentTiles(map, point) {
   let adjacent_points = [];
   let w = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -394,8 +474,13 @@ function procGenGetAdjacentTiles(map, point) {
   }
   return adjacent_points;
 }
-
+/** Class representing a point only used for procedural generation */
 class ProcGenPoint {
+  /**
+   * Create a new procedural generation point
+   * @param {number} x point's x-value
+   * @param {number} y point's y-value
+   */
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -403,27 +488,52 @@ class ProcGenPoint {
     this.explored=false;
   }
 
+  /**
+   * Checks if x and y are equal to a given point
+   * @param {ProcGenPoint} point point to check against 
+   * @returns {boolean} true if equal, false otherwise
+   */
   equalsPoint(point) {
     return ((this.x == point.x) && (this.y == point.y));
   }
 
+  /**
+   * Sets the x and y position of point
+   * @param {number} x the x-value
+   * @param {number} y the y-value
+   */
   setPos(x, y) {
     this.setX(x);
     this.setY(y);
   }
 
+  /**
+   * Sets x position of point
+   * @param {number} x the x-value
+   */
   setX(x) {
     this.x=x;
   }
-  
+
+  /**
+   * Sets y position of point
+   * @param {number} y the y-value
+   */
   setY(y) {
     this.y=y;
   }
 
+  /**
+   * Sets point's explored value to true
+   */
   setExplored() {
     this.explored=true;
   }
 
+  /**
+   * Gets point's explored value
+   * @returns {boolean} value of point.explored
+   */
   isExplored() {
     return this.explored;
   }

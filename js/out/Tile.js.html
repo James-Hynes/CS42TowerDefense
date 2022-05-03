@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Tile.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Tile.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Class representing Tile
+ */
+class Tile extends Phaser.GameObjects.Sprite {
+  /**
+   * Creates a new tile object
+   * @param {Level} scene Level to place tile on
+   * @param {number} t The type of the tile 
+   * @param {number} x The x-value of the tile
+   * @param {number} y The y-value of the tile 
+   */
+  constructor(scene, t, x, y) {
+    super(scene, x*64, y*64, "tdtiles", tileFrameNames[0]);
+    this.setOrigin(0.5, 0.5);
+    this.type = t;
+    this.tileX = x;
+    this.tileY = y;
+    this.tower;
+    this.decorations = [];
+    this.occupied = false;
+    this.image_type = "";
+    this.ghost_tower;
+    this.ghost_tower_base;
+
+    this.discovered  = false;
+    this.prev = false;
+  }
+
+  /**
+   * Checks if the tile is occupied
+   * @returns {boolean} Occupied
+   */
+  isOccupied() {
+    return this.occupied;
+  }
+
+  /**
+   * Gets x and y value of Tile
+   * @returns {Array} [x, y]
+   */
+  getPos() {
+    return [this.x, this.y];
+  }
+
+  /**
+   * Gets type of tile
+   * @returns {number} Type
+   */
+  getType() {
+    return this.type;
+  }
+  
+  /**
+   * Displays Tile data in string
+   * @returns {string} 
+   */
+  toString() {
+    return "Tile, Type: "+this.type+", Position: ["+this.tileX+", "+this.tileY+"], Image: "+this.frame.name+", Towers: []";
+  }
+
+  /**
+   * Adds new tower to tile
+   * @param {Level} scene The level to place the tower on
+   * @param {number} t The type of tower
+   * @param {number} x The x-value of the tower
+   * @param {number} y The y-value of the tower
+   * @param {number} base The image number in spritesheet of the base of the tower
+   * @param {number} im The image number in spritesheet of the tower
+   * @param {number} radius The radius of the tower
+   */
+  addTower(scene, t, x, y, base, im, radius) {
+    this.tower = new Tower(scene, t, x, y, im, base, radius);
+    this.scene.towerLayer.add(this.tower);
+    this.occupied = true;
+  }
+
+  /**
+   * Adds a decoration to the tile
+   * @param {number} im The image number in spritesheet of the decoration to add
+   */
+  addDecoration(im) {
+    this.scene.decorationLayer.add(im);
+    this.decorations.push(im);
+    this.occupied = true;
+  }
+
+  /**
+   * Sets the image type of the tile
+   * @param {number} image_num The image number in spritesheet of the tile
+   * @returns {string} The type of image the tile represents
+   */
+  setImageType(image_num) {
+    let im_type = getKeyByValue(THEME_KEY[theme], image_num);
+    if(im_type) {
+      this.image_type = im_type;
+      return;
+    }
+    this.image_type = "ground";
+  }
+
+  /**
+   * Removes all decorations from Tile
+   */
+  clearDecorations() {
+    for(let decoration of this.decorations) {
+      this.decorations.splice(this.decorations.indexOf(decoration), 1);
+      decoration.destroy();
+    }
+    if(!this.tower) {
+      this.occupied = false;
+    }
+  }
+
+  /**
+   * Adds a "ghost tower" to the tile - used when player mouses over
+   * @param {Phaser.Sprite} ghost_tower_base Sprite of base of ghost tower
+   * @param {Phaser.Sprite} ghost_tower Sprite of ghost tower
+   */
+  setGhostTower(ghost_tower_base, ghost_tower) {
+    this.ghost_tower = ghost_tower;
+    this.ghost_tower_base = ghost_tower_base;
+    this.scene.towerLayer.add([this.ghost_tower_base, this.ghost_tower]);
+  }
+
+  /**
+   * Removes ghost tower from tile
+   */
+  removeGhostTower() {
+    if(this.ghost_tower) {
+      this.ghost_tower.destroy();
+      this.ghost_tower = null;
+      this.ghost_tower_base.destroy();
+      this.ghost_tower_base = null;
+      this.scene.towerLayer.remove([this.ghost_tower, this.ghost_tower_base]);
+    }
+  }
+
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bullet.html">Bullet</a></li><li><a href="Carrier.html">Carrier</a></li><li><a href="Enemy.html">Enemy</a></li><li><a href="Level.html">Level</a></li><li><a href="NonPathEnemy.html">NonPathEnemy</a></li><li><a href="PathEnemy.html">PathEnemy</a></li><li><a href="Plane.html">Plane</a></li><li><a href="Player.html">Player</a></li><li><a href="ProcGenPoint.html">ProcGenPoint</a></li><li><a href="Soldier.html">Soldier</a></li><li><a href="Spawner.html">Spawner</a></li><li><a href="Tank.html">Tank</a></li><li><a href="Tile.html">Tile</a></li><li><a href="TitleScreen.html">TitleScreen</a></li><li><a href="Tower.html">Tower</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addPercentToNumber">addPercentToNumber</a></li><li><a href="global.html#addPointAdjacentToPoint">addPointAdjacentToPoint</a></li><li><a href="global.html#clearAllRangeCircles">clearAllRangeCircles</a></li><li><a href="global.html#closestMultiple">closestMultiple</a></li><li><a href="global.html#createEnemyPath">createEnemyPath</a></li><li><a href="global.html#degrees_to_radians">degrees_to_radians</a></li><li><a href="global.html#generateLevel">generateLevel</a></li><li><a href="global.html#genRandomPoints">genRandomPoints</a></li><li><a href="global.html#getAdjacentEmptyTile">getAdjacentEmptyTile</a></li><li><a href="global.html#getAdjacentEmptyTileRelative">getAdjacentEmptyTileRelative</a></li><li><a href="global.html#getHorizontalConnections">getHorizontalConnections</a></li><li><a href="global.html#getKeyByValue">getKeyByValue</a></li><li><a href="global.html#getNeighboringPathTiles">getNeighboringPathTiles</a></li><li><a href="global.html#getNextHorizontalPathTile">getNextHorizontalPathTile</a></li><li><a href="global.html#getNextTurn">getNextTurn</a></li><li><a href="global.html#getNextVerticalPathTile">getNextVerticalPathTile</a></li><li><a href="global.html#getPathSegmentDirection">getPathSegmentDirection</a></li><li><a href="global.html#getPoint">getPoint</a></li><li><a href="global.html#getSameTileConnections">getSameTileConnections</a></li><li><a href="global.html#getSameTileConnections2">getSameTileConnections2</a></li><li><a href="global.html#getSettingValue">getSettingValue</a></li><li><a href="global.html#getTile">getTile</a></li><li><a href="global.html#getTilesOfType">getTilesOfType</a></li><li><a href="global.html#getTileType">getTileType</a></li><li><a href="global.html#getTurnDirection">getTurnDirection</a></li><li><a href="global.html#getVerticalConnections">getVerticalConnections</a></li><li><a href="global.html#giveplayermoney">giveplayermoney</a></li><li><a href="global.html#h">h</a></li><li><a href="global.html#lerp">lerp</a></li><li><a href="global.html#padPath">padPath</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#play">play</a></li><li><a href="global.html#pointInList">pointInList</a></li><li><a href="global.html#procGenBfs">procGenBfs</a></li><li><a href="global.html#procGenGetAdjacentTiles">procGenGetAdjacentTiles</a></li><li><a href="global.html#radians_to_degrees">radians_to_degrees</a></li><li><a href="global.html#removeDuplicates">removeDuplicates</a></li><li><a href="global.html#runAnimation">runAnimation</a></li><li><a href="global.html#tileInSet">tileInSet</a></li><li><a href="global.html#unExploreMap">unExploreMap</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon May 02 2022 18:03:00 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

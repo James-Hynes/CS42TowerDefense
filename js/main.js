@@ -22,8 +22,6 @@ let LOWER_STATS_UI_PANEL;
 
 let towerShopCards = [];
 
-// const UI_TILES = [275, 289];
-
 let theme = "grass/stone";
 
 let game = new Phaser.Game(config);

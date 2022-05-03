@@ -1,2 +1,3 @@
-# CS42TowerDefense
- CS42TowerDefense
+# CS42 Tower Defense
+
+Simple docs for this project.

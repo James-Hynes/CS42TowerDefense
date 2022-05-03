@@ -1,5 +1,12 @@
+/**
+ * A class to represent a level of the game
+ * @extends Phaser.Scene
+ */
 class Level extends Phaser.Scene {
-  constructor(config) {
+  /**
+   * Creates a new Level 
+   */
+  constructor() {
     super("Level");
 
     this.currentWave=0;
@@ -40,6 +47,10 @@ class Level extends Phaser.Scene {
     this.stats = {waves: 0, kills: 0, money: this.player.money, towers: 0, lives: 0, time: 0};
   }
 
+  /**
+   * initialize - called at scene.start
+   * @param {Object|number} data config object or levelID
+   */
   init(data) {
     if(typeof data['levelID'] !== "undefined") {
       this.handleConfig(data['levelID']);
@@ -48,22 +59,39 @@ class Level extends Phaser.Scene {
     }
     this.active=true;
   }
+
+  /**
+   * Sets config data for procedurally generated level
+   * @param {Object} data config data 
+   */
   handleProcGenConfig(data) {
     this.config = Object.assign({}, data);
-    this.waves = this.config['customWaves'] || WAVES;
+    this.waves = [].concat(this.config['customWaves'] || WAVES);
     theme = this.config['theme'];
     this.isProcGen=true;
   }
+
+  /**
+   * Generate new level data
+   */
   regenProcGenSettings() {
     this.handleProcGenConfig({name: "Level Ten", index: 8, image_name: "", customWaves: false, theme: Object.keys(THEME_KEY)[Math.floor(Math.random() * Object.keys(THEME_KEY).length)], difficulty: "???", layout: generateLevel(1)});
   }
+
+  /**
+   * Sets config data for premade level
+   * @param {number} levelID The index of the level in DESIGNED_LEVELS [0-8] 
+   */
   handleConfig(levelID) {
     this.config = Object.assign({}, DESIGNED_LEVELS[levelID]);
-    this.waves = this.config['customWaves'] || WAVES;
+    this.waves = [].concat(this.config['customWaves'] || WAVES);
     theme = this.config['theme'];
     this.isProcGen=false;
   }
 
+  /**
+   * Preloads images, audio, etc. Called when scene created
+   */
   preload() {
     this.load.atlas('tdtiles', './res/img/tdtilesheet.png', './res/tdtilesheet.json');
     this.load.atlasXML('explosionanim', './res/img/spritesheet_regularExplosion.png', './res/spritesheet_regularExplosion.xml');
@@ -110,7 +138,9 @@ class Level extends Phaser.Scene {
     
   }
 
-
+  /**
+   * Creates the Level - phaser method called when Level created
+   */
   create() {
     try {
       // setup layers, music, animations, spritesheet
@@ -270,7 +300,6 @@ class Level extends Phaser.Scene {
     this.uiLayer.add(this.player_waves_text);
 
     for(let i = 0; i < Object.keys(TOWER_TYPES).length; i++) {
-      let tower = TOWER_TYPES[Object.keys(TOWER_TYPES)[i]];
       let towerShopCard = this.add.sprite(1330 + ((i % 2 === 0) ? 0 : 180), (125 * (Math.floor(i / 2)))+65, "tower"+i+"ShopCard").setInteractive({cursor: "pointer"});
       towerShopCard.on("pointerdown", () => {
         if(!paused) {
@@ -300,6 +329,9 @@ class Level extends Phaser.Scene {
     }
   }
 
+  /**
+   * Updates elements in the level - enemies, towers, etc.
+   */
   update() {
     if(this.active) {
       this.stats['time']++;
@@ -419,6 +451,9 @@ class Level extends Phaser.Scene {
     
   }
 
+  /**
+   * Sets up and displays victory/defeat screen
+   */
   loadVictoryScreen() {
     let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
     this.victoryScreenLayer = this.add.layer().setDepth(12);
@@ -501,6 +536,9 @@ class Level extends Phaser.Scene {
     });
   }
 
+  /**
+   * Sets up and displays feedback menu - Only on procedurally generated levels
+   */
   loadFeedbackMenu() {
     pause();
     let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
@@ -580,6 +618,9 @@ class Level extends Phaser.Scene {
     
   }
 
+  /**
+   * Sets up and displays settings menu
+   */
   loadSettingsMenu() {
     let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
     this.settingsMenuLayer = this.add.layer().setDepth(12);
@@ -677,25 +718,40 @@ class Level extends Phaser.Scene {
 
   }
 
+  /**
+   * Gets and updates localStorage settings
+   * @returns {object} Settings
+   */
   getLocalStorageSettings() {
     let settings = localStorage.getItem('settings');
     if(!settings) {
       localStorage.setItem('settings', "{\"volume\": 0.25, \"autostart\": true, \"music\": false}");
     } 
     this.settings = JSON.parse(localStorage.getItem("settings"));
+    return this.settings;
   }
   
+  /**
+   * Updates setting in localStorage then updates settings object
+   * @param {String} setting setting to change
+   * @param {String|number} value new value 
+   */
   changeSetting(setting, value) {
     this.settings[setting] = value;
     localStorage.setItem('settings', JSON.stringify(this.settings));
     this.getLocalStorageSettings();
   }
 
+  /**
+   * Gets the image type of a given tile
+   * @param {Tile[][]} map 2D Tilemap 
+   * @param {*} x the x-value of the tile
+   * @param {*} y the y-value of the tile
+   * @returns {number} The number of the image in the spritesheet
+   */
   getRoadImageType(map, x, y) {
     let tile = getTileType(map, x, y);
     if(tile === "S" || tile === "E") {
-      let vertical_connections = getVerticalConnections(map, x, y);
-      let horizontal_connections = getHorizontalConnections(map, x, y);
       let sameTileConnection = getSameTileConnections2(map, x, y)[0];
   
       if(sameTileConnection[0] === x) {
@@ -727,8 +783,6 @@ class Level extends Phaser.Scene {
           }
         }
       }
-      // if(getTile(map, horizontal_connections[0][0], horizontal_connections[0][1]) > )
-  
   
       if(getTileType(map, x+1, y) === tile) {
         return tileFrameNames[THEME_KEY[theme][i + "Left"]];
@@ -781,6 +835,12 @@ class Level extends Phaser.Scene {
     return tileFrameNames[THEME_KEY[theme]["ground"][Math.floor(Math.random() * THEME_KEY[theme]["ground"].length)]];
   }
 
+  /**
+   * Creates a 2D Tilemap of Tile objects
+   * @param {Level} scene Level to create the tilemap for
+   * @param {String[][]} map 2D Map layout of level
+   * @returns {Tile[][]} 2D Tilemap
+   */
   createTileMap(scene, map) {
     let tmap = [];
     for(let i = 0; i < map.length; i++) {
@@ -795,6 +855,11 @@ class Level extends Phaser.Scene {
     return tmap;
   }
 
+  /**
+   * Creates and places spawners on startTiles of a given map
+   * @param {Level} scene Level to place spawners on 
+   * @param {Tile[][]} map 2D Tilemap 
+   */
   createSpawners(scene, map) {
     let startTiles = getTilesOfType(map, "S");
     let spawnerTiles = [];
@@ -847,6 +912,11 @@ class Level extends Phaser.Scene {
     }
   }
 
+  /**
+   * Creates and places end graphics on endTiles
+   * @param {Level} scene Level to place graphics on 
+   * @param {Tile[][]} map 2D Tilemap
+   */
   createEnds(scene, map) {
     let endTiles = getTilesOfType(map, "E");
     let homeTiles = [];
@@ -892,6 +962,11 @@ class Level extends Phaser.Scene {
     }
   }
 
+  /**
+   * Sets up tower upgrades on right side of screen
+   * @param {Level} scene Level towers are on
+   * @param {Tile} tile Tile containing tower to upgrade
+   */
   createTowerUpgrades(scene, tile) {
     let upgradeLocked = -1;
     if(tile.tower.upgrades[0] > 2 && tile.tower.upgrades[1] === 2) {
@@ -936,6 +1011,9 @@ class Level extends Phaser.Scene {
     }
   }
 
+  /**
+   * Removes all tower upgrades from screen
+   */
   clearTowerUpgrades() {
     for(let towerUpgradeElement of this.towerUpgradeElements) {
       towerUpgradeElement.destroy();

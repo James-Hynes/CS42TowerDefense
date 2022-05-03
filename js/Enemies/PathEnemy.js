@@ -1,4 +1,20 @@
+/**
+ * Class representing an enemy using a path
+ * @extends Enemy
+ */
 class PathEnemy extends Enemy {
+  /**
+   * Create a new enemy
+   * @param {Level} scene the level to put the enemy on
+   * @param {number} x the x-value
+   * @param {number} y the y-value
+   * @param {number} t the type of enemy
+   * @param {number} s the speed of the enemy
+   * @param {number} im the image number in tilesheet of the enemy
+   * @param {number} v the value of the enemy
+   * @param {number} h the health of the enemy
+   * @param {Tile[]} path the list of tiles to follow
+   */
   constructor(scene, x, y, t, s, im, v, h, path) {
     super(scene, x, y, t, s, im, v, h);
     this.path = path;
@@ -7,6 +23,12 @@ class PathEnemy extends Enemy {
     }
   }
 
+  /**
+   * Adjust the exact position of each tile based on what type of image it has.
+   * This is necesarry to keep the enemies on the center of each path tile.
+   * Each path in this game is made up of 2 tiles, so in order to appear to be on the center of the path,
+   * the enemy needs to stay in the center of those two parts of the path
+   */
   setPath() {
     this.path = this.path.map((a) => {
       if(a.image_type.indexOf("start") > -1) {
@@ -51,6 +73,11 @@ class PathEnemy extends Enemy {
     });
   }
 
+  /**
+   * Moves the enemy in a given direction at a given speed
+   * @param {string} dir the direction to move ['up', 'down', 'left', 'right']
+   * @param {number} speed the speed to move at
+   */
   move(dir, speed) {
     switch(dir) {
       case "up": this.y -= speed; this.angle = 270; break;
@@ -60,16 +87,12 @@ class PathEnemy extends Enemy {
     }
   }
 
+  /**
+   * Manages the enemies movements, and checks if enemy has finished it's path
+   * @param {Level} scene the level the enemy is in
+   */
   update(scene) {
-    if(typeof scene === "undefined") {
-      pause();
-      console.log(this, scene);
-    }
     this.handleStatus(scene);
-    if(typeof scene === "undefined") {
-      pause();
-      console.log(this);
-    }
     if(this.path.length > 0) {
       let distX = this.path[0][1] - this.x;
       let distY = this.path[0][2] - this.y;
@@ -113,6 +136,5 @@ class PathEnemy extends Enemy {
         }
       }
     }
-    return;
   }
 }
