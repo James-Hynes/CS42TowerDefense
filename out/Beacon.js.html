@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Beacon.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Beacon.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Class representing a beacon
+ */
+class Beacon extends Tower {
+  /**
+   * Creates a new beacon tower
+   * @param {*} scene 
+   * @param {*} t 
+   * @param {*} x 
+   * @param {*} y 
+   * @param {*} im 
+   * @param {*} base 
+   * @param {*} radius 
+   */
+  constructor(scene, t, x, y, im, base, radius) {
+    super(scene, t, x, y, im, base, radius);
+    this.c = scene.add.circle(x, y, radius/8);
+    this.c.alpha=0.5;
+    this.c.setStrokeStyle(1, 0x1a65ac);
+    this.beacon_sound = scene.sound.add("radar");
+    this.beacon_sound.setVolume(0.005);
+    playSoundAtSettingsVolume(this.beacon_sound);
+    scene.add.tween({
+      targets: this.c,
+      scaleX: 8,
+      scaleY: 8,
+      duration: 1500,
+      repeat: -1,
+      onRepeat: () => {
+        playSoundAtSettingsVolume(this.beacon_sound);
+      }
+    })
+    scene.towerLayer.add(this.c);
+    this.base = scene.add.sprite(x, y, "tdtiles", tileFrameNames[base]);
+    this.scene.towerLayer.add(this.base);
+    this.rate = 0;
+    this.fireQueued = false;
+    this.fireCounter=0;
+    this.setOffsets();
+
+    this.boostsToGive = {radius: 1, rate: 1};
+  }
+
+  update() {
+    for(let tower of this.getTowersInRadius()) {
+      for(let b of Object.keys(this.boostsToGive)) {
+        tower.addBoost(b, this.boostsToGive[b]);
+      }
+    }
+  }
+
+  getTowersInRadius() {
+    let inRange = [];
+    for(let tower of this.scene.towerLayer.getChildren()) {
+      if(tower instanceof Tower &amp;&amp; tower !== this) {
+        if( Math.pow(tower.x - this.x,2) + Math.pow(tower.y - this.y, 2) &lt; Math.pow(this.settings["radius"], 2) )
+        {
+          inRange.push(tower);
+        }
+      }
+    }
+    return inRange;
+  }
+
+  /**
+   * Sets upgrade values
+   * @param {number[]} upgrades [n, n]
+   */
+   upgrade(upgrades) {
+    for(let i = 0; i &lt; upgrades.length; i++) {
+      for(let j = 0; j &lt; upgrades[i]; j++) {
+        this.upgrades[i]++;
+        let upgradesToString = this.upgrades[0].toString() + this.upgrades[1].toString();
+        this.setTexture("tdtiles", tileFrameNames[TOWER_UPGRADE_IMAGE_PERMUTATIONS[this.type][upgradesToString]]);
+        TOWER_UPGRADES[this.type][i][j]['eff'](this);
+        this.circle_image.setRadius(this.settings["radius"]);
+      }
+    }
+  }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Beacon.html">Beacon</a></li><li><a href="Bullet.html">Bullet</a></li><li><a href="Carrier.html">Carrier</a></li><li><a href="Enemy.html">Enemy</a></li><li><a href="Level.html">Level</a></li><li><a href="NonPathEnemy.html">NonPathEnemy</a></li><li><a href="PathEnemy.html">PathEnemy</a></li><li><a href="Plane.html">Plane</a></li><li><a href="Player.html">Player</a></li><li><a href="ProcGenPoint.html">ProcGenPoint</a></li><li><a href="Soldier.html">Soldier</a></li><li><a href="Spawner.html">Spawner</a></li><li><a href="Tank.html">Tank</a></li><li><a href="Tile.html">Tile</a></li><li><a href="TitleScreen.html">TitleScreen</a></li><li><a href="Tower.html">Tower</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addPercentToNumber">addPercentToNumber</a></li><li><a href="global.html#addPointAdjacentToPoint">addPointAdjacentToPoint</a></li><li><a href="global.html#assignArrayValue">assignArrayValue</a></li><li><a href="global.html#clearAllRangeCircles">clearAllRangeCircles</a></li><li><a href="global.html#closestMultiple">closestMultiple</a></li><li><a href="global.html#createEnemyPath">createEnemyPath</a></li><li><a href="global.html#degrees_to_radians">degrees_to_radians</a></li><li><a href="global.html#generateLevel">generateLevel</a></li><li><a href="global.html#genRandomPoints">genRandomPoints</a></li><li><a href="global.html#getAdjacentEmptyTile">getAdjacentEmptyTile</a></li><li><a href="global.html#getAdjacentEmptyTileRelative">getAdjacentEmptyTileRelative</a></li><li><a href="global.html#getHorizontalConnections">getHorizontalConnections</a></li><li><a href="global.html#getKeyByValue">getKeyByValue</a></li><li><a href="global.html#getNeighboringPathTiles">getNeighboringPathTiles</a></li><li><a href="global.html#getNextHorizontalPathTile">getNextHorizontalPathTile</a></li><li><a href="global.html#getNextTurn">getNextTurn</a></li><li><a href="global.html#getNextVerticalPathTile">getNextVerticalPathTile</a></li><li><a href="global.html#getPathSegmentDirection">getPathSegmentDirection</a></li><li><a href="global.html#getPoint">getPoint</a></li><li><a href="global.html#getSameTileConnections">getSameTileConnections</a></li><li><a href="global.html#getSameTileConnections2">getSameTileConnections2</a></li><li><a href="global.html#getSettingValue">getSettingValue</a></li><li><a href="global.html#getTile">getTile</a></li><li><a href="global.html#getTilesOfType">getTilesOfType</a></li><li><a href="global.html#getTileType">getTileType</a></li><li><a href="global.html#getTurnDirection">getTurnDirection</a></li><li><a href="global.html#getVerticalConnections">getVerticalConnections</a></li><li><a href="global.html#giveplayermoney">giveplayermoney</a></li><li><a href="global.html#h">h</a></li><li><a href="global.html#lerp">lerp</a></li><li><a href="global.html#padPath">padPath</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#play">play</a></li><li><a href="global.html#playSoundAtVolume">playSoundAtVolume</a></li><li><a href="global.html#pointInList">pointInList</a></li><li><a href="global.html#procGenBfs">procGenBfs</a></li><li><a href="global.html#procGenGetAdjacentTiles">procGenGetAdjacentTiles</a></li><li><a href="global.html#radians_to_degrees">radians_to_degrees</a></li><li><a href="global.html#removeDuplicates">removeDuplicates</a></li><li><a href="global.html#runAnimation">runAnimation</a></li><li><a href="global.html#tileInSet">tileInSet</a></li><li><a href="global.html#unExploreMap">unExploreMap</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon May 09 2022 13:11:30 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

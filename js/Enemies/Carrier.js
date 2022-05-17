@@ -17,29 +17,15 @@ class Carrier extends PathEnemy {
   }
 
   /**
-   * Inflict damage on the carrier
-   * @param {number} damage the damage to deal to the carrier
-   * @param {Level} scene the level to spawn soldiers in
-   * @returns {boolean} true if damage kills carriers, false otherwise
-   */
-  takeDamage(damage, scene) {
-    this.health-= damage;
-    if(this.health <= 0) {
-      this.kill();
-      this.spawnSoldiers(scene);
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * Spawns soldiers at carrier's location
    * @param {Level} scene the level to spawn soldiers in 
    */
-  spawnSoldiers(scene) {
+  spawnSoldiers() {
     for(let i = 0; i < this.soldiers; i++) {
-      let en = new Soldier(scene, closestMultiple(this.x, 4) + ((4 * (Math.floor(Math.random() * 4))) * ((Math.random() < 0.5) ? 1 : -1)), closestMultiple(this.y, 4) + ((4 * (Math.floor(Math.random() * 4))) * ((Math.random() < 0.5) ? 1 : -1)), 2, this.path);
-      scene.enemyLayer.add(en);
+      let en = new Soldier(this.scene, closestMultiple(this.x, 4) + ((4 * (Math.floor(Math.random() * 4))) * ((Math.random() < 0.5) ? 1 : -1)), closestMultiple(this.y, 4) + ((4 * (Math.floor(Math.random() * 4))) * ((Math.random() < 0.5) ? 1 : -1)), 2, this.path);
+      en.parent = this;
+      this.scene.enemyLayer.add(en);
     }
+    this.kill();
   }
 }  

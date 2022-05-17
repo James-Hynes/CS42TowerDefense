@@ -92,15 +92,26 @@ class PathEnemy extends Enemy {
    * @param {Level} scene the level the enemy is in
    */
   update(scene) {
-    this.handleStatus(scene);
+    this.handleLifeBar();
+    this.handleStatus();
     if(this.path.length > 0) {
       let distX = this.path[0][1] - this.x;
       let distY = this.path[0][2] - this.y;
 
       if(distX === 0 && distY === 0) {
         if(this.path.length === 1) {
+          let damage;
+          if(this instanceof Carrier) {
+            damage = 1 + this.soldiers;
+          } else if(this instanceof Tank) {
+            damage = 10000;
+          } else {
+            damage = 1;
+          }
           this.kill();
-          scene.player.lives--;
+          if(!scene.player.takeLives(damage)) {
+            scene.die();
+          }
           return;
         }
         this.path.shift();
@@ -135,6 +146,31 @@ class PathEnemy extends Enemy {
           this.move('down', this.speed);
         }
       }
+
+      // if((distX < this.speed && distY < this.speed)) {
+      //   if(this.path.length === 1) {
+      //     let damage;
+      //     if(this instanceof Carrier) {
+      //       damage = 1 + this.soldiers;
+      //     } else if(this instanceof Tank) {
+      //       damage = 10000;
+      //     } else {
+      //       damage = 1;
+      //     }
+      //     this.kill();
+      //     if(!scene.player.takeLives(damage)) {
+      //       scene.die();
+      //     }
+      //     return;
+      //   }
+      //   this.path.shift();
+
+      //   if(this.soldierPath) {
+      //     this.soldierPath.shift();
+      //   }
+      //   this.x = this.path[0][1];
+      //   this.y = this.path[0][2];
+      // }
     }
   }
 }

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Enemies/Tank.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Enemies/Tank.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Class representing Tank type enemy
+ * @extends PathEnemy
+ */
+class Tank extends PathEnemy {
+  /**
+   * Creates a new Tank enemy
+   * @param {Level} scene 
+   * @param {number} x 
+   * @param {number} y 
+   * @param {number} t 
+   * @param {Tile[]} path 
+   */
+  constructor(scene, x, y, t, path) {
+    let tankTypes = {1: {img: 309, speed: 1, value: 500, health: 100}, 2: {img: 310, speed: 2, value: 1000, health: 200}, 3: {img: 311, speed: 4, value: 2000, health: 400}, 4: {img: 312, speed: 4, value: 3000, health: 600}}
+    super(scene, x, y, t, tankTypes[t]["speed"], tankTypes[t]["img"], tankTypes[t]["value"], tankTypes[t]["health"], path);
+  }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Beacon.html">Beacon</a></li><li><a href="Bullet.html">Bullet</a></li><li><a href="Carrier.html">Carrier</a></li><li><a href="Enemy.html">Enemy</a></li><li><a href="Level.html">Level</a></li><li><a href="NonPathEnemy.html">NonPathEnemy</a></li><li><a href="PathEnemy.html">PathEnemy</a></li><li><a href="Plane.html">Plane</a></li><li><a href="Player.html">Player</a></li><li><a href="ProcGenPoint.html">ProcGenPoint</a></li><li><a href="Soldier.html">Soldier</a></li><li><a href="Spawner.html">Spawner</a></li><li><a href="Tank.html">Tank</a></li><li><a href="Tile.html">Tile</a></li><li><a href="TitleScreen.html">TitleScreen</a></li><li><a href="Tower.html">Tower</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addPercentToNumber">addPercentToNumber</a></li><li><a href="global.html#addPointAdjacentToPoint">addPointAdjacentToPoint</a></li><li><a href="global.html#assignArrayValue">assignArrayValue</a></li><li><a href="global.html#clearAllRangeCircles">clearAllRangeCircles</a></li><li><a href="global.html#closestMultiple">closestMultiple</a></li><li><a href="global.html#createEnemyPath">createEnemyPath</a></li><li><a href="global.html#degrees_to_radians">degrees_to_radians</a></li><li><a href="global.html#generateLevel">generateLevel</a></li><li><a href="global.html#genRandomPoints">genRandomPoints</a></li><li><a href="global.html#getAdjacentEmptyTile">getAdjacentEmptyTile</a></li><li><a href="global.html#getAdjacentEmptyTileRelative">getAdjacentEmptyTileRelative</a></li><li><a href="global.html#getHorizontalConnections">getHorizontalConnections</a></li><li><a href="global.html#getKeyByValue">getKeyByValue</a></li><li><a href="global.html#getNeighboringPathTiles">getNeighboringPathTiles</a></li><li><a href="global.html#getNextHorizontalPathTile">getNextHorizontalPathTile</a></li><li><a href="global.html#getNextTurn">getNextTurn</a></li><li><a href="global.html#getNextVerticalPathTile">getNextVerticalPathTile</a></li><li><a href="global.html#getPathSegmentDirection">getPathSegmentDirection</a></li><li><a href="global.html#getPoint">getPoint</a></li><li><a href="global.html#getSameTileConnections">getSameTileConnections</a></li><li><a href="global.html#getSameTileConnections2">getSameTileConnections2</a></li><li><a href="global.html#getSettingValue">getSettingValue</a></li><li><a href="global.html#getTile">getTile</a></li><li><a href="global.html#getTilesOfType">getTilesOfType</a></li><li><a href="global.html#getTileType">getTileType</a></li><li><a href="global.html#getTurnDirection">getTurnDirection</a></li><li><a href="global.html#getVerticalConnections">getVerticalConnections</a></li><li><a href="global.html#giveplayermoney">giveplayermoney</a></li><li><a href="global.html#h">h</a></li><li><a href="global.html#lerp">lerp</a></li><li><a href="global.html#padPath">padPath</a></li><li><a href="global.html#pause">pause</a></li><li><a href="global.html#play">play</a></li><li><a href="global.html#playSoundAtVolume">playSoundAtVolume</a></li><li><a href="global.html#pointInList">pointInList</a></li><li><a href="global.html#procGenBfs">procGenBfs</a></li><li><a href="global.html#procGenGetAdjacentTiles">procGenGetAdjacentTiles</a></li><li><a href="global.html#radians_to_degrees">radians_to_degrees</a></li><li><a href="global.html#removeDuplicates">removeDuplicates</a></li><li><a href="global.html#runAnimation">runAnimation</a></li><li><a href="global.html#tileInSet">tileInSet</a></li><li><a href="global.html#unExploreMap">unExploreMap</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Mon May 09 2022 13:11:30 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

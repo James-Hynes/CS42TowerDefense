@@ -24,6 +24,7 @@ class NonPathEnemy extends Enemy {
    * Update enemy's position, angle
    */
   update() {
+    this.handleLifeBar();
     this.handleStatus();
     let a = Math.atan2(this.target[1] - this.y, this.target[0] - this.x);
     this.angle = radians_to_degrees(a);
@@ -31,7 +32,9 @@ class NonPathEnemy extends Enemy {
     this.y += (this.speed * Math.sin(a));
   
     if(this.checkFinished()) {
-      scene.player.lives--;
+      if(!this.scene.player.takeLives(1)) {
+        this.scene.die();
+      }
       this.kill();
     }
   }

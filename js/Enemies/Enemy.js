@@ -18,11 +18,18 @@ class Enemy extends Phaser.GameObjects.Sprite {
     super(scene, x, y, "tdtiles", tileFrameNames[im]);
     this.type = t;
     this.speed = s;
+    this.base_speed = s;
     this.value = v;
     this.health = h;
+    this.max_health = h;
     this.setOrigin(0.5, 0.5);
 
     this.statusConditions = [];
+    this.showLifeBar = false;
+
+    this.createLifeBar();
+
+    this.dead=false;
   }
 
   /**
@@ -33,40 +40,80 @@ class Enemy extends Phaser.GameObjects.Sprite {
   takeDamage(damage) {
     this.health-= damage;
     if(this.health <= 0) {
-      this.kill();
+      if(this.getStatus('static')) {
+        this.doStaticExplosion();
+      }
+      if(this instanceof Carrier) {
+        this.spawnSoldiers();
+      } else {
+          this.kill();
+      }
       return true;
     }
     return false;
+  }
+
+  doStaticExplosion() {
+    for(let enemy of this.getEnemiesInRadius(100)) {
+      if(enemy !== this && enemy.dead===false) {
+        enemy.removeStatus('static');
+        enemy.takeDamage(5);
+      }
+    }
+    playSoundAtSettingsVolume(this.scene.sound.add("rumble"));
+    let explosion = this.scene.add.sprite(this.x, this.y, "staticexplosion");
+    this.scene.towerLayer.add(explosion);
+    explosion.play("staticexplosion");
+    explosion.on("animationcomplete", () => {explosion.destroy()})
   }
 
   /**
    * Kills the enemy
    */
   kill() {
+    this.scene.player.addMoney(this.value);
+    this.scene.stats['kills']++;
+    this.scene.stats['money']+=this.value;
+    if(typeof this.background_bar !== "undefined") {
+      this.background_bar.destroy();
+      this.health_bar.destroy();
+    }
     this.destroy();
+    this.dead=true;
   }
 
   /**
    * Manages enemy's current status conditions and inflicts their effects
    * @param {Level} scene the level the enemy is in
    */
-  handleStatus(scene) {
+  handleStatus() {
+    let prev_types = [];
     for(let condition of this.statusConditions) {
       let conditionType = condition[0];
       let conditionSeverity = condition[1];
+      prev_types.push(conditionType);
 
       switch(conditionType) {
         case "fire": 
-        this.setTint(0xFF0000); 
-        if(this instanceof Carrier) {
-          this.takeDamage(conditionSeverity, scene);
-        } else {
-          this.takeDamage(conditionSeverity); 
-        }
-        break;
+          if(prev_types.includes('ice')) {
+            this.setTint(0x930ee6); 
+          } else {
+            this.setTint(0xFF0000); 
+          }
+          if(!this.dead) {
+            this.takeDamage(conditionSeverity); 
+          }
+          break;
         case "ice": 
-          this.setTint(0x34e8eb);
-          this.speed /= conditionSeverity;
+          if(prev_types.includes('fire')) {
+            this.setTint(0x930ee6); 
+          } else {
+            this.setTint(0x34e8eb); 
+          }
+          this.speed = this.base_speed/2;
+          break;
+        case "static":
+          this.setTint(0xfae505);
           break;
       }
     }
@@ -86,10 +133,52 @@ class Enemy extends Phaser.GameObjects.Sprite {
    * @param {string} type which type of status condition to remove ['fire', 'ice']
    */
   removeStatus(type) {
-    for(let i = 0; i < this.statusConditions; i++) {
+    for(let i = 0; i < this.statusConditions.length; i++) {
       if(this.statusConditions[i][0] === type) {
         this.statusConditions.splice(i, 1);
       }
+    }
+  }
+
+  getStatus(type) {
+    for(let i = 0 ; i < this.statusConditions.length; i++) {
+      if(this.statusConditions[i][0] === type) {
+        return this.statusConditions[i];
+      }
+    }
+    return false;
+  }
+
+  getEnemiesInRadius(radius) {
+    let inRange = [];
+    for(let enemy of this.scene.enemyLayer.getChildren()) {
+      if( Math.pow(enemy.x - this.x,2) + Math.pow(enemy.y - this.y, 2) < Math.pow(radius, 2) )
+      {
+        inRange.push(enemy);
+      }
+    }
+    return inRange.filter((a) => {return a !== this});
+  }
+
+  createLifeBar() {
+    this.background_bar = this.scene.add.rectangle(this.x-20, this.y-40, 40, 20, "0x000000");
+    this.health_bar = this.scene.add.rectangle(this.x-20, this.y-40, 40, 20, "0xFF0000").setOrigin(0, 0.5);
+    this.background_bar.alpha=0;
+    this.health_bar.alpha=0;
+    this.scene.uiLayer.add([this.background_bar, this.health_bar]);
+  }
+
+  handleLifeBar() {
+    this.background_bar.setPosition(this.x, this.y-40);
+    this.health_bar.setPosition(this.x-20, this.y-40);
+    this.health_bar.width = (this.health / this.max_health) * 40;
+
+    if(this.showLifeBar) {
+      this.background_bar.alpha =1;
+      this.health_bar.alpha=1;
+    } else {
+      this.background_bar.alpha=0;
+      this.health_bar.alpha=0;
     }
   }
 }
