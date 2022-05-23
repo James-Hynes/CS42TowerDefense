@@ -21,7 +21,7 @@ class Beacon extends Tower {
     this.circle_tweens = [];
     this.beacon_sound = scene.sound.add("radar");
     this.circle_duration = 1500;
-    playSoundAtSettingsVolume(this.beacon_sound);
+    this.scene.soundManager.playSound("radar", {volume: this.scene.settings['volume']/5});
     this.circle_tweens.push(scene.add.tween({
       targets: this.circles,
       scaleX: 8,
@@ -29,7 +29,7 @@ class Beacon extends Tower {
       duration: this.circle_duration,
       repeat: -1,
       onRepeat: () => {
-        playSoundAtSettingsVolume(this.beacon_sound);
+        this.scene.soundManager.playSound("radar", {volume: this.scene.settings['volume']/5});
       }
     }));
     scene.towerLayer.add(this.circles[0]);
@@ -40,6 +40,7 @@ class Beacon extends Tower {
 
     this.boostsToGive = {radius: 1.1, rate: 0.95, sell: 0};
     this.showLifeBars = false;
+    this.base_settings = Object.assign({}, this.settings);
   }
 
   update() {
@@ -119,7 +120,7 @@ class Beacon extends Tower {
       duration: this.circle_duration,
       repeat: -1,
       onRepeat: () => {
-        playSoundAtSettingsVolume(this.beacon_sound);
+        this.scene.soundManager.playSound("radar", {volume: this.scene.settings['volume']/5});
       }
     }))
   }

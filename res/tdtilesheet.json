@@ -4231,14 +4231,86 @@
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":48,"h":48},
 	"sourceSize": {"w":48,"h":48}
+},
+{
+	"filename": "towerDefense_tile530.png",
+	"frame": {"x":960,"y":1818,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile531.png",
+	"frame": {"x":0,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile532.png",
+	"frame": {"x":64,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile533.png",
+	"frame": {"x":128,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile534.png",
+	"frame": {"x":192,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile535.png",
+	"frame": {"x":256,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile536.png",
+	"frame": {"x":320,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile537.png",
+	"frame": {"x":384,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
+},
+{
+	"filename": "towerDefense_tile538.png",
+	"frame": {"x":448,"y":1882,"w":64,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
+	"sourceSize": {"w":64,"h":64}
 }],
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
 	"image": "tdtilesheet.png",
 	"format": "RGBA8888",
-	"size": {"w":1024,"h":1882},
+	"size": {"w":1024,"h":1946},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:26e41f7d662552b6075b9215bd1e0680:78372e2b1b4050ebc1b5b964e4cddec3:6863dc45fd4ca14416f0dc11c3ccf2b1$"
+	"smartupdate": "$TexturePacker:SmartUpdate:3d0adcd24b8b871fac9499e6f54c3983:29155e964cc4720926bc9f9a4c815961:6863dc45fd4ca14416f0dc11c3ccf2b1$"
 }
 }

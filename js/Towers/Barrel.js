@@ -1,4 +1,13 @@
+/**
+ * Class representing a mine or barrel.
+ */
 class Barrel extends Phaser.GameObjects.Sprite {
+  /**
+   * Create a new barrel object
+   * @param {Level} scene 
+   * @param {number} x 
+   * @param {number} y 
+   */
   constructor(scene, x, y) {
     super(scene, x, y, "tdtiles", tileFrameNames[516]);
     this.exploding=false;
@@ -10,12 +19,18 @@ class Barrel extends Phaser.GameObjects.Sprite {
     this.boostRad=0;
   }
 
+  /**
+   * Handles barrel's collision detection
+   */
   update() {
     if(!this.exploding && typeof this.scene !== "undefined") {
       this.checkEnemyColliding();
     }
   }
 
+  /**
+   * Checks if enemy is within range for explosion
+   */
   checkEnemyColliding() {
     for(let enemy of this.scene.enemyLayer.getChildren()) {
       if(enemy instanceof Enemy) {
@@ -27,6 +42,9 @@ class Barrel extends Phaser.GameObjects.Sprite {
     }
   }
 
+  /**
+   * Plays explosion animation and applies status if enabled.
+   */
   explode() {
     this.exploding=true;
     this.play('explosion');
@@ -43,6 +61,10 @@ class Barrel extends Phaser.GameObjects.Sprite {
     }
   }
 
+  /**
+   * Gets enemies with tower's radius
+   * @returns {Enemy} list of enemies in range
+   */
   getEnemiesInRadius() {
     let inRange = [];
     for(let enemy of this.scene.enemyLayer.getChildren()) {

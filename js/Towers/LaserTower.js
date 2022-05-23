@@ -1,4 +1,17 @@
+/**
+ * Class representing laser tower
+ */
 class LaserTower extends Tower {
+  /**
+   * Creates a new laser tower class
+   * @param {Level} scene 
+   * @param {number} t 
+   * @param {number} x 
+   * @param {number} y 
+   * @param {number} im 
+   * @param {number} base 
+   * @param {number} radius 
+   */
   constructor(scene, t, x, y, im, base, radius) {
     super(scene, t, x, y, im, base, radius);
     this.lasers = [];
@@ -16,6 +29,9 @@ class LaserTower extends Tower {
     this.base_settings = Object.assign({}, this.settings);
   }
 
+  /**
+   * Manages lasers and firing
+   */
   update() {
     this.manageBoosts();
     for(let i = 0; i < this.settings['activelasers']; i++) {
@@ -39,7 +55,7 @@ class LaserTower extends Tower {
         this.angleTowardsEnemy(e);
         laser.angle = radians_to_degrees(Math.atan2(e.y-laser.y, e.x-laser.x))+90;
         laser.scaleY = (dist_formula({x: laser.x, y: laser.y}, {x: e.x, y: e.y}) / laser.height);
-        if(this.counter >= this.settings['rate']) {
+        if(this.counter >= (this.settings['rate'] / this.scene.speedModifier)) {
           this.counter=0;
           e.takeDamage(this.settings['bullet_damage']);
           if(this.upgrades[0] > 0) {
@@ -58,6 +74,9 @@ class LaserTower extends Tower {
     this.counter++;
   }
 
+  /**
+   * Clears tower
+   */
   clearTower() {
     this.circle_image.destroy();
     for(let laser of this.lasers) {

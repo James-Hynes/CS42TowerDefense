@@ -1,38 +1,14 @@
 let TOWER_TYPES = {
-  0: {name: "Basic Tower", type: "Offensive", description: "Shoots high damage missiles at an average fire rate", radius: 150, rate: 20, bullet: 250, bullet_damage: 10, cost: 200, base_img: 180, img: 249, 
-    base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], 
-    customFire: (scene, tower) => {
-      for(let i = -10; i <= 10; i+=20) {
-        let radian_angle = degrees_to_radians(tower.angle+6);
-        let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x))+i, (-Math.cos(radian_angle) * 50) + (tower.y), 12, tower.settings["bullet"], tower.settings["bullet_damage"]);
-        bullet.angle = tower.angle;
-        scene.bulletLayer.add(bullet)
-      }
-      tower.fireQueued = false;
-    }},
-  1: {name: "Missile Tower", type: "Offensive", description: "Shoots very high-damage missiles at a slow rate of fire", radius: 100, rate: 10, bullet: 250, bullet_damage: 4, cost: 500, base_img: 179, img: 203, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: (scene, tower) => {
-    for(let i = -10; i <= 10; i+=20) {
-      let radian_angle = degrees_to_radians(tower.angle+6);
-      let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x))+i, (-Math.cos(radian_angle) * 50) + (tower.y), 12, tower.settings["bullet"], tower.settings["bullet_damage"]);
-      bullet.angle = tower.angle;
-      scene.bulletLayer.add(bullet)}
-      tower.fireQueued = false;
-    }}, 
-  2: {name: "Artillery", type: "Offensive", description: "Shoots very fast moving high damage bullets at slow rate of fire", radius: 400, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 179, img: 248, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: (scene, tower) => {
-    let radian_angle = degrees_to_radians(tower.angle+6);
-    let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x)), (-Math.cos(radian_angle) * 50) + (tower.y), 20, tower.settings["bullet"], tower.settings["bullet_damage"]);
-    bullet.angle = tower.angle;
-    scene.bulletLayer.add(bullet);
-    tower.fireQueued = false;}},
-  3: {
-      name:"Turret", type: "Offensive", description: "Shoots low damage bullets at a rapid rate of fire", radius: 400, rate: 10, bullet: 314, bullet_damage: 4, cost: 500, base_img: 181, img: 313, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.75], customFire: (scene, tower) => {for(let i = -10; i <= 10; i+=20) {let radian_angle = degrees_to_radians(tower.angle+6);let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x))+i, (-Math.cos(radian_angle) * 50) + (tower.y), 20, tower.settings["bullet"], tower.settings["bullet_damage"]);bullet.angle = tower.angle;scene.bulletLayer.add(bullet)}tower.fireQueued = false;}
-  },
-  4: {name: "Laser Tower", type: "Offensive", description: "Shoots a laser that deals damage over time and can slow enemies", radius: 400, rate: 5, bullet: 325, bullet_damage: 0.5, cost: 500, base_img: 179, img: 504, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: false},
+  0: {name: "Basic Tower", type: "Offensive", description: "Shoots high damage missiles at an average fire rate", radius: 150, rate: 90, bullet: 250, bullet_damage: 10, cost: 200, base_img: 180, img: 249, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: (scene, tower) => {for(let i = -10; i <= 10; i+=20) {let radian_angle = degrees_to_radians(tower.angle+6);let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x))+i, (-Math.cos(radian_angle) * 50) + (tower.y), 12, tower.settings["bullet"], tower.settings["bullet_damage"]);bullet.angle = tower.angle;scene.bulletLayer.add(bullet)}tower.fireQueued = false;}},
+  1: {name: "Missile Tower", type: "Offensive", description: "Shoots very high-damage missiles at a slow rate of fire", radius: 100, rate: 100, bullet: 250, bullet_damage: 4, cost: 500, base_img: 179, img: 203, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: (scene, tower) => {for(let i = -10; i <= 10; i+=20) {let radian_angle = degrees_to_radians(tower.angle+6);let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x))+i, (-Math.cos(radian_angle) * 50) + (tower.y), 12, tower.settings["bullet"], tower.settings["bullet_damage"]);bullet.angle = tower.angle;scene.bulletLayer.add(bullet)}tower.fireQueued = false;}}, 
+  2: {name: "Artillery", type: "Offensive", description: "Shoots very fast moving high damage bullets at slow rate of fire", radius: 400, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 179, img: 248, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: (scene, tower) => {let radian_angle = degrees_to_radians(tower.angle+6);let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x)), (-Math.cos(radian_angle) * 50) + (tower.y), 20, tower.settings["bullet"], tower.settings["bullet_damage"]);bullet.angle = tower.angle;scene.bulletLayer.add(bullet);tower.fireQueued = false;}},
+  3: {name:"Turret", type: "Offensive", description: "Shoots low damage bullets at a rapid rate of fire", radius: 400, rate: 10, bullet: 314, bullet_damage: 0.25, cost: 500, base_img: 181, img: 313, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.75], customFire: (scene, tower) => {for(let i = -10; i <= 10; i+=20) {let radian_angle = degrees_to_radians(tower.angle+6);let bullet = new Bullet(scene, ((Math.sin(radian_angle) * 50) + (tower.x))+i, (-Math.cos(radian_angle) * 50) + (tower.y), 20, tower.settings["bullet"], tower.settings["bullet_damage"]);bullet.angle = tower.angle;scene.bulletLayer.add(bullet)}tower.fireQueued = false;}},
+  4: {name: "Laser Tower", type: "Offensive", description: "Shoots a laser that deals damage over time and can slow enemies", radius: 100, rate: 5, bullet: 325, bullet_damage: 0.75, cost: 500, base_img: 179, img: 504, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: false},
   5: {name: "Beacon", type: "Passive", description: "Gives towers around it a boost to their stats.", radius: 100, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 179, img: 507, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.7], customFire: (scene, tower) => {}},
-  6: {name: "Factory", type: "Offensive", description: "Creates mines and places them on the track.", radius: 300, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 505, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
-  7: {name: "Store", type: "Passive", description: "Provides extra money for killing enemies and income after each wave", radius: 100, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 506, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
-  8: {name: "Lightning Tower", type: "Offensive", description: "Shoots bolts of lightning that inflict static condition and deal damage", radius: 200, rate: 5, bullet: 325, bullet_damage: 1, cost: 500, base_img: 517, img: 509, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
-  9: {name: "Windmill", type: "Passive", description: "Regens health and provides income after each round", radius: 100, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 514, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
+  6: {name: "Factory", type: "Offensive", description: "Creates mines and places them on the track.", radius: 150, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 505, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
+  7: {name: "Store", type: "Passive", description: "Provides extra money for killing enemies and income after each wave", radius: 200, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 506, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
+  8: {name: "Lightning Tower", type: "Offensive", description: "Shoots bolts of lightning that inflict static condition and deal damage", radius: 110, rate: 5, bullet: 325, bullet_damage: 0.1, cost: 500, base_img: 517, img: 509, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
+  9: {name: "Windmill", type: "Passive", description: "Regens health and provides income after each round", radius: 0, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 537, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
   10: {name: "Bomb", type: "Temporary", description: "Detonates 3 seconds after being placed, dealing AOE damage.", radius: 100, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 515, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
   11: {name: "Mine", type: "Temporary", description: "Detonates after being touched by an enemy, dealing AOE damage.", radius: 100, rate: 100, bullet: 325, bullet_damage: 4, cost: 500, base_img: 517, img: 516, base_offset_settings: [0.5, 0.5], img_offset_settings: [0.5, 0.5], customFire: (scene, tower) => {}},
 };
@@ -358,6 +334,149 @@ const TOWER_UPGRADES = {
           tower.mineBoosts['damage'] += 20;
           tower.mineBoosts['radius'] += 20;
         }}]
+   ],
+   7: [
+    [{title: "Income Up", description: "Tower produces 50% more income after each round.", eff: 
+    (tower) => {
+      tower.settings['income'] = addPercentToNumber(tower.settings['income'], 50);
+    }, cost: 300}, {
+      title: "Stock Items", description: "Tower generates extra money during rounds", cost: 750, eff: 
+      (tower) => {
+        tower.createItems("BAD_ITEMS");
+        tower.settings['midroundincome']=true;
+      }
+    }, {
+      title: "Better Items", description: "Tower generates even more money during each round", cost: 300, eff: 
+      (tower) => {
+        tower.settings['midroundincomemod']=1.5;
+        tower.clearItems();
+        tower.createItems("GOOD_ITEMS");
+      }
+    }, {
+      title: "Final Upgrade(TEMP)", description: "Tower generates 200% income", cost: 10000, eff: 
+      (tower) => {
+        tower.settings['income'] *=2;
+      }
+    }],
+    [{title: "Better Pay", description: "All Enemies killed within this tower's radius are worth 2x their base value", eff: 
+      (tower) => {
+        tower.createEmployee(0);
+        tower.settings['moneymod'] = 2;
+      },
+       cost: 300
+      }, 
+      {title: "Income Up", description: "Tower produces 20% more income after each round", 
+      eff: (tower) => {
+        tower.settings['income'] = addPercentToNumber(tower.settings['income'], 20);
+      }
+      , cost: 600}, 
+      {title: "More Employees", description: "All enemies killed within tower's radius are now worth 3x their base value", eff: 
+      (tower) => {
+        tower.createEmployee(1);
+        tower.settings['moneymod'] = 3;
+      }
+      , cost: 800}, {
+        title: "Final Upgrade (TEMP) ", cost: 4000, description: "Generate 200% more income from all enemies within this tower's radius", eff: 
+        (tower) => {
+          tower.settings['moneymod'] = 6;
+        }}]
+   ],
+   8: [
+    [{title: "More Chains", description: "Lightning can chain to +2 enemies", eff: 
+    (tower) => {
+      tower.settings['chains'] += 2;
+    }, cost: 300}, {
+      title: "Damage Up", description: "Lightning does +2 damage.", cost: 750, eff: 
+      (tower) => {
+        tower.settings['bolt_color'] = "0xf26b71";
+        tower.settings['bullet_damage'] += 2;
+      }
+    }, {
+      title: "Maximum Chains", description: "Tower can chain to every enemy within its radius", cost: 300, eff: 
+      (tower) => {
+        tower.settings['chains']=Infinity;
+      }
+    }, {
+      title: "Unstable Lightning", description: "Lightning now has a chance to inflict a random status condition", cost: 10000, eff: 
+      (tower) => {
+        tower.settings['unstable'] = true;
+      }
+    }],
+    [{title: "Rate Up", description: "Lightning shoots 20% faster", eff: 
+      (tower) => {
+        tower.settings['rate'] = subtractPercentFromNumber(tower.settings['rate'], 0.2);
+      },
+       cost: 300
+      }, 
+      {title: "Radius Up", description: "Tower has a +20% radius", 
+      eff: (tower) => {
+        tower.settings['radius'] = addPercentToNumber(tower.settings['radius'], 20);
+      }
+      , cost: 600}, 
+      {title: "Damage Up", description: "Lightning does +3 damage", eff: 
+      (tower) => {
+        tower.settings['bullet_damage'] += 3;
+      }
+      , cost: 800}, {
+        title: "Final Upgrade (TEMP) ", cost: 4000, description: "All tower stats are multiplied by 1.5.", eff: 
+        (tower) => {
+          tower.settings['radius'] = addPercentToNumber(tower.settings['radius'], 50);
+          tower.settings['rate'] = subtractPercentFromNumber(tower.settings['rate'], 0.5);
+          tower.settings['bullet_damage'] = addPercentToNumber(tower.settings['bullet_damage'], 50);
+        }}]
+   ],
+   9: [
+    [{title: "Restoration Up", description: "Restore one more life after each round", eff: 
+    (tower) => {
+      tower.settings['restoration']+=1;
+    }, cost: 300}, {
+      title: "More Restoration", description: "Restore two more lives after each round", cost: 750, eff: 
+      (tower) => {
+        tower.settings['restoration'] += 2;
+      }
+    }, {
+      title: "Max Lives Up", description: "You can have a maximum of 25 more lives.", cost: 300, eff: 
+      (tower) => {
+        tower.scene.player.max_lives += 25;
+      }
+    }, {
+      title: "Big Upgrade", description: "You can have 75 more lives and you restore 10 lives at the end of each round.", cost: 10000, eff: 
+      (tower) => {
+        tower.settings['restoration'] = 10;
+        tower.scene.player.max_lives += 75;
+      }
+    }],
+    [{title: "Income Up", description: "Gain 20% more income after each round", eff: 
+      (tower) => {
+        tower.settings['income'] = addPercentToNumber(tower.settings['income'], 20);
+        tower.settings['windmillspeed'] = 12;
+        tower.createWindmillAnimation();
+      },
+       cost: 300
+      }, 
+      {title: "Income Up", description: "Gain 20% more income after each round", eff: 
+      (tower) => {
+        tower.settings['income'] = addPercentToNumber(tower.settings['income'], 20);
+        tower.settings['windmillspeed'] = 16;
+        tower.createWindmillAnimation();
+      },
+       cost: 300
+      },  
+      {title: "Income Up", description: "Gain 20% more income after each round", eff: 
+      (tower) => {
+        tower.settings['income'] = addPercentToNumber(tower.settings['income'], 20);
+        tower.settings['windmillspeed'] = 24;
+        tower.createWindmillAnimation();
+      },
+       cost: 300
+      },  {title: "Income Up", description: "Gain 20% more income after each round", eff: 
+      (tower) => {
+        tower.settings['income'] = addPercentToNumber(tower.settings['income'], 20);
+        tower.settings['windmillspeed'] = 32;
+        tower.createWindmillAnimation();
+      },
+       cost: 300
+      }]
    ]
 }
 
@@ -403,6 +522,24 @@ const TOWER_UPGRADE_IMAGE_PERMUTATIONS = {
           "12": 523, "13": 523, "14": 523, "21": 524, "22": 524,
           "23": 524, "24": 524, "42": 524, "41": 524, "32": 524, 
           "31": 524, 
+  },
+  7: {"00": 506, "01": 506, "02": 506, "03": 506, "04": 532, 
+          "10": 529, "20": 529, "30": 529, "40": 530, "11": 529, 
+          "12": 529, "13": 529, "14": 531, "21": 529, "22": 529,
+          "23": 529, "24": 531, "42": 530, "41": 530, "32": 529, 
+          "31": 529
+  },
+  8: {"00": 509, "01": 533, "02": 534, "03": 535, "04": 536, 
+          "10": 509, "20": 509, "30": 509, "40": 509, "11": 533, 
+          "12": 534, "13": 535, "14": 536, "21": 533, "22": 534,
+          "23": 535, "24": 536, "42": 534, "41": 533, "32": 534, 
+          "31": 533
+  },
+  9: {"00": 514, "01": 514, "02": 514, "03": 514, "04": 514, 
+          "10": 514, "20": 514, "30": 514, "40": 514, "11": 514, 
+          "12": 514, "13": 514, "14": 514, "21": 514, "22": 514,
+          "23": 514, "24": 514, "42": 514, "41": 514, "32": 514, 
+          "31": 514
   }
 }
 

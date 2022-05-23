@@ -22,6 +22,7 @@ class TitleScreen extends Phaser.Scene {
     this.active=false;
     titleScreen=this; // 4 debugging
     this.medals={};
+    this.soundManager = new SoundManager(this);
   }
 
   /**
@@ -81,6 +82,12 @@ class TitleScreen extends Phaser.Scene {
     this.load.image("resumeDialog", "./res/img/resumeDialog.png");
     this.load.image("restart", "./res/img/restart.png");
     this.load.image("resume", "./res/img/resume.png");
+
+    this.load.image("soundOff", "./res/img/soundOff.png");
+    this.load.image("soundOn", "./res/img/soundOn.png");
+    this.load.image("musicOff", "./res/img/musicOff.png");
+    this.load.image("musicOn", "./res/img/musicOn.png");
+    this.load.image("instructions", "./res/img/instructions.png");
   }
 
   /**
@@ -126,7 +133,7 @@ class TitleScreen extends Phaser.Scene {
     this.dayOrNight=1;
     // Setup title screen graphics w layering
     this.anims.create({key: 'staranim', frames: this.anims.generateFrameNames('star', {prefix:"star", end: 4, start: 1, zeroPad: 0, suffix: ".png"}), repeat: 3, frameRate: 12} );
-    this.music = this.sound.add('backgroundtrack', 1, true);
+    this.soundManager.playMusic('backgroundtrack', {loop: true, volume: this.settings['volume']});
     this.planeLayer = this.add.layer().setDepth(3);
     this.starLayer = this.add.layer().setDepth(3);
     this.titleScreenLayer = this.add.layer().setDepth(11);
@@ -158,7 +165,8 @@ class TitleScreen extends Phaser.Scene {
       });
       b.on("pointerdown", () => {
         if(!this.settingsMenuActive && !this.levelSelectActive) {
-          playSoundAtSettingsVolume(this.sound.add('uiclick'));
+          this.soundManager.playSound('uiclick');
+          // this.soundManager.playSound('uiclick');
           b.setTexture("titlescreensheet", buttons[i]+"Pressed.png");
           setTimeout(() => {
             b.setTexture('titlescreensheet', buttons[i]+"Reg.png");
@@ -174,6 +182,7 @@ class TitleScreen extends Phaser.Scene {
               this.loadLevelSelect();
               break;
             case 2: 
+              this.loadInstructions();
               console.log("Quit Game Scene...");
               break;
           }
@@ -191,6 +200,40 @@ class TitleScreen extends Phaser.Scene {
     }
     // start day night cycle
     this.doDayNightCycle();
+
+    let musicToggle = this.add.sprite(32, 32, "music" + ((this.settings['music']) ? "On" : "Off")).setInteractive({cursor: "pointer"});
+    musicToggle.on("pointerover", () => {
+      musicToggle.setTint("0x4dcaf7");
+    });
+    musicToggle.on("pointerout", () => {
+      musicToggle.setTint("0xFFFFFF");
+    });
+    musicToggle.on("pointerdown", () => {
+      if(this.settings['music']) {
+        this.changeSetting("music", false);
+      } else {
+        this.changeSetting("music", true);
+      }
+      musicToggle.setTexture("music" + ((this.settings['music']) ? "On" : "Off"));
+    })
+    this.titleScreenLayer.add(musicToggle);
+
+    let volumeToggle = this.add.sprite(84, 32, "sound" + ((this.settings['volume'] > 0) ? "On" : "Off")).setInteractive({cursor: "pointer"});
+    volumeToggle.on("pointerover", () => {
+      volumeToggle.setTint("0x4dcaf7");
+    });
+    volumeToggle.on("pointerout", () => {
+      volumeToggle.setTint("0xFFFFFF");
+    });
+    volumeToggle.on("pointerdown", () => {
+      if(this.settings['volume'] > 0) {
+        this.changeSetting("volume", 0);
+      } else {
+        this.changeSetting("volume", 0.25);
+      }
+      volumeToggle.setTexture("sound" + ((this.settings['volume'] > 0) ? "On" : "Off"));
+    })
+    this.titleScreenLayer.add(volumeToggle);
   }
 
   /**
@@ -198,15 +241,14 @@ class TitleScreen extends Phaser.Scene {
    */
   update() {
     if(this.active) {
-      // check for music setting changes
-      this.music.setVolume(this.settings['volume']);
-      if(!this.music.isPlaying && this.settings["music"]) {
-        this.music.play();
-      } else if(this.music.isPlaying && !this.settings['music']) {
-        this.music.stop();
+      this.soundManager.music.volume = (this.settings['volume'] / 5);
+      if(!this.soundManager.music.isPlaying && this.settings['music']) {
+        this.soundManager.music.play();
+      } else if(this.soundManager.music.isPlaying && !this.settings['music']) {
+        this.soundManager.music.stop();
       }
       if(this.settingsMenuActive) {
-        this.settingsVolumeText.setText(parseInt(this.settings["volume"]*100) + "%");
+        this.settingsVolumeText.setText(parseInt(this.settings["volume"]*100));
       }
       this.planeAngleCounter+=0.1;
       
@@ -365,7 +407,7 @@ class TitleScreen extends Phaser.Scene {
     this.settingsLayer.add(s);
     this.settingsLayer.add(o);
     o.on("pointerdown", () => {
-      playSoundAtSettingsVolume(this.sound.add('uiclick'));
+      this.soundManager.playSound('uiclick');
       glow.destroy();
       this.tweens.add({
         targets: this.settingsLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
@@ -384,7 +426,7 @@ class TitleScreen extends Phaser.Scene {
       let n = this.add.sprite(975+direction['x'], (295+direction['y']) + (i*100), "ToggleButton" + ((this.settings[togglesettings[i]]) ? "On" : "")).setOrigin(0, 0).setInteractive({cursor: "pointer"});
       this.settingsLayer.add(n);
       n.on("pointerdown", () => {
-        playSoundAtSettingsVolume(this.sound.add('uiclick'));
+        this.soundManager.playSound('uiclick');
         let toggled = n.texture.key.includes("On");
         n.setTexture("ToggleButton" + ((toggled) ? "" : "On"));
         this.changeSetting(togglesettings[i], !toggled);
@@ -394,19 +436,65 @@ class TitleScreen extends Phaser.Scene {
     let downButton = this.add.sprite(920+direction['x'], 520+direction['y'], "down").setInteractive({cursor: "pointer"});
     let upButton = this.add.sprite(1010+direction['x'], 520+direction['y'], "up").setInteractive({cursor: "pointer"});
     downButton.on(("pointerdown"), () => {
-      playSoundAtSettingsVolume(this.sound.add('uiclick'));
+      this.soundManager.playSound('uiclick');
       this.changeSetting("volume", (this.settings["volume"] <= 0.05) ? 0 : this.settings['volume']-0.05);
     });
     upButton.on(("pointerdown"), () => {
-      playSoundAtSettingsVolume(this.sound.add('uiclick'));
+      this.soundManager.playSound('uiclick');
       this.changeSetting("volume", (this.settings["volume"] >= 0.95) ? 1 : this.settings['volume']+0.05);
     });
     this.settingsLayer.add(this.add.sprite(965+direction['x'], 520+direction['y'], "ToggleButton"));
-    this.settingsVolumeText = this.add.text(953+direction['x'], 507+direction['y'], parseInt(this.settings["volume"]*100) + "%", {font: "16px Arial", color: "0x000000"})
+    this.settingsVolumeText = this.add.text(953+direction['x'], 507+direction['y'], parseInt(this.settings["volume"]*100), 2, {font: "16px Arial", color: "0x000000"})
     this.settingsLayer.add([this.settingsVolumeText, downButton, upButton]);
 
     this.tweens.add({
       targets: this.settingsLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
+      x: "+="+-direction['x'],
+      y: "+="+-direction['y'],
+      duration: 1250,
+      ease: "Bounce.easeOut",
+      easeParams: [4]
+    });
+
+  }
+
+  /**
+   * Loads and displays the settings menu
+   */
+   loadInstructions() {
+    let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
+    this.instructionsLayer = this.add.layer().setDepth(12);
+    let glow = this.add.rectangle(0, 0, 1600, 800, 0x000000).setOrigin(0, 0);
+    glow.alpha=0.5;
+    this.instructionsLayer.add(glow);
+    let s = this.add.sprite(650+direction['x'], 200+direction['y'], 'instructions').setOrigin(0, 0);
+    let o = this.add.sprite(1045+direction['x'], 205+direction['y'], "CloseButton").setInteractive({cursor: "pointer"});
+    o.on("pointerover", () => {
+      o.setTint(0xf53d3d);
+    })
+    o.on("pointerout", () => {
+      o.setTint(0xFFFFFF);
+    })
+    this.instructionsLayer.add(s);
+    this.instructionsLayer.add(o);
+    o.on("pointerdown", () => {
+      this.soundManager.playSound('uiclick');
+      glow.destroy();
+      this.tweens.add({
+        targets: this.instructionsLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
+        y: "+="+direction['y'],
+        x: "+="+direction['x'],
+        duration: 1250,
+        ease: "Bounce.easeOut",
+        easeParams: [4],
+        onComplete: () => {
+          this.instructionsLayer.destroy();
+          this.settingsMenuActive=false;
+        }
+      });
+    })
+    this.tweens.add({
+      targets: this.instructionsLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
       x: "+="+-direction['x'],
       y: "+="+-direction['y'],
       duration: 1250,
@@ -440,7 +528,7 @@ class TitleScreen extends Phaser.Scene {
     this.levelSelectLayer.add(l);
     l.on(("pointerdown"), () => {
       if(!this.medalSelectActive) {
-        playSoundAtSettingsVolume(this.sound.add('uiclick'));
+        this.soundManager.playSound('uiclick');
         glow.destroy();
       this.tweens.add({
         targets: this.levelSelectLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
@@ -582,7 +670,7 @@ class TitleScreen extends Phaser.Scene {
                 this.medalSelectActive=false;
                 this.levelSelectActive=false;
                 this.active=false;
-                this.music.stop();
+                this.soundManager.music.stop();
                 this.medals={};
                 this.scene.start("Level", {levelID: levelID, difficulty: i});
               }
@@ -602,7 +690,7 @@ class TitleScreen extends Phaser.Scene {
     })
     this.medalSelectLayer.add(l);
     l.on(("pointerdown"), () => {
-      playSoundAtSettingsVolume(this.sound.add('uiclick'));
+      this.soundManager.playSound('uiclick');
         glow.destroy();
       this.tweens.add({
         targets: this.medalSelectLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
@@ -655,7 +743,7 @@ class TitleScreen extends Phaser.Scene {
     resumebutton.on(("pointerdown"), () => {
       let r = this.add.rectangle(0, 0, 1600, 800, 0x000000).setOrigin(0, 0);
       r.alpha=0;
-      playSoundAtSettingsVolume(this.sound.add('uiclick'));
+      this.soundManager.playSound('uiclick');
       this.resumeGameLayer.add(r);
       this.tweens.add({
         targets: r,
@@ -666,7 +754,7 @@ class TitleScreen extends Phaser.Scene {
           this.resumeGameActive=false;
           this.levelSelectActive=false;
           this.active=false;
-          this.music.stop();
+          this.soundManager.music.stop();
           this.medals={};
           this.scene.start("Level", {levelID: levelID, difficulty: difficulty, regenLevel: true, restart: false});
         }
@@ -675,7 +763,7 @@ class TitleScreen extends Phaser.Scene {
     restartbutton.on(("pointerdown"), () => {
       let r = this.add.rectangle(0, 0, 1600, 800, 0x000000).setOrigin(0, 0);
       r.alpha=0;
-      playSoundAtSettingsVolume(this.sound.add('uiclick'));
+      this.soundManager.playSound('uiclick');
       this.resumeGameLayer.add(r);
       this.tweens.add({
         targets: r,
@@ -686,7 +774,7 @@ class TitleScreen extends Phaser.Scene {
           this.resumeGameActive=false;
           this.levelSelectActive=false;
           this.active=false;
-          this.music.stop();
+          this.soundManager.music.stop();
           this.medals={};
           this.scene.start("Level", {levelID: levelID, difficulty: difficulty, restart: true});
         }

@@ -22,10 +22,12 @@ class Carrier extends PathEnemy {
    */
   spawnSoldiers() {
     for(let i = 0; i < this.soldiers; i++) {
-      let en = new Soldier(this.scene, closestMultiple(this.x, 4) + ((4 * (Math.floor(Math.random() * 4))) * ((Math.random() < 0.5) ? 1 : -1)), closestMultiple(this.y, 4) + ((4 * (Math.floor(Math.random() * 4))) * ((Math.random() < 0.5) ? 1 : -1)), 2, this.path);
+      let en = new Soldier(this.scene, closestMultiple(this.x, 4), closestMultiple(this.y, 4), this.type+1, [this.starting_path[this.starting_path.length - this.path.length - 1]].concat(this.path));
       en.parent = this;
       this.scene.enemyLayer.add(en);
     }
     this.kill();
   }
 }  
+
+//  + ((4 * (Math.floor(Math.random() * 2))) * ((Math.random() < 0.5) ? 1 : -1))

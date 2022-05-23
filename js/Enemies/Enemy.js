@@ -23,13 +23,12 @@ class Enemy extends Phaser.GameObjects.Sprite {
     this.health = h;
     this.max_health = h;
     this.setOrigin(0.5, 0.5);
-
     this.statusConditions = [];
     this.showLifeBar = false;
-
     this.createLifeBar();
-
     this.dead=false;
+    this.moneyMod=1;
+
   }
 
   /**
@@ -53,6 +52,10 @@ class Enemy extends Phaser.GameObjects.Sprite {
     return false;
   }
 
+
+  /**
+   * Runs static explosion animation and deals damage to surrounding enemies. 
+   */
   doStaticExplosion() {
     for(let enemy of this.getEnemiesInRadius(100)) {
       if(enemy !== this && enemy.dead===false) {
@@ -71,9 +74,10 @@ class Enemy extends Phaser.GameObjects.Sprite {
    * Kills the enemy
    */
   kill() {
-    this.scene.player.addMoney(this.value);
+    let amt = this.value * this.moneyMod;
+    this.scene.player.addMoney(amt);
     this.scene.stats['kills']++;
-    this.scene.stats['money']+=this.value;
+    this.scene.stats['money']+=amt;
     if(typeof this.background_bar !== "undefined") {
       this.background_bar.destroy();
       this.health_bar.destroy();
@@ -140,6 +144,11 @@ class Enemy extends Phaser.GameObjects.Sprite {
     }
   }
 
+  /**
+   * Gets a given status condition carried by the enemy.
+   * @param {string} type 
+   * @returns {string|boolean}
+   */
   getStatus(type) {
     for(let i = 0 ; i < this.statusConditions.length; i++) {
       if(this.statusConditions[i][0] === type) {
@@ -149,6 +158,11 @@ class Enemy extends Phaser.GameObjects.Sprite {
     return false;
   }
 
+  /**
+   * Gets all enemies within enemy's radius
+   * @param {number} radius radius to check 
+   * @returns {Enemy} a list of enemies within range
+   */
   getEnemiesInRadius(radius) {
     let inRange = [];
     for(let enemy of this.scene.enemyLayer.getChildren()) {
@@ -160,6 +174,9 @@ class Enemy extends Phaser.GameObjects.Sprite {
     return inRange.filter((a) => {return a !== this});
   }
 
+  /**
+   * Sets up invisible health bar above enemy. To be actived by Beacon level 4 upgrade.
+   */
   createLifeBar() {
     this.background_bar = this.scene.add.rectangle(this.x-20, this.y-40, 40, 20, "0x000000");
     this.health_bar = this.scene.add.rectangle(this.x-20, this.y-40, 40, 20, "0xFF0000").setOrigin(0, 0.5);
@@ -168,6 +185,9 @@ class Enemy extends Phaser.GameObjects.Sprite {
     this.scene.uiLayer.add([this.background_bar, this.health_bar]);
   }
 
+  /**
+   * updates position of life bar
+   */
   handleLifeBar() {
     this.background_bar.setPosition(this.x, this.y-40);
     this.health_bar.setPosition(this.x-20, this.y-40);

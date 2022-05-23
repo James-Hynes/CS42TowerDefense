@@ -1,14 +1,20 @@
+/**
+ * Class representing lightning tower
+ */
 class LightningTower extends Tower {
   constructor(scene, t, x, y, im, base, radius) {
     super(scene, t, x, y, im, base, radius);
     this.bolts = [];
     this.counter=0;
     this.settings['chains'] = 3;
+    this.settings['bolt_color'] = "0xFFFFFF";
+    this.settings['unstable'] = false;
+    this.base_settings = Object.assign({}, this.settings);
   }
 
   update() {
-    // this.manageBoosts();
-    if(this.counter >= this.settings["rate"]) {
+    this.manageBoosts();
+    if(this.counter >= (this.settings['rate'] / this.scene.speedModifier)) {
       if(this.bolts.length < 1){ 
         if(this.fire()) {
           this.counter=0;
@@ -29,6 +35,9 @@ class LightningTower extends Tower {
     this.counter++;
   }
 
+  /**
+   * Shoots lightning
+   */
   fire() {
     let enemies = this.getEnemiesInRadius();
     if(enemies.length < 1) { return false; };
@@ -46,6 +55,7 @@ class LightningTower extends Tower {
       }
       bolt.setOrigin(0.5, 1);
       bolt.play('lightning');
+      bolt.setTint(this.settings['bolt_color']);
       bolt.target = {obj: enemy, x: enemy.x, y: enemy.y};
       
       bolt.update = () => {
@@ -60,9 +70,15 @@ class LightningTower extends Tower {
       bolt.scaleY = (dist_formula({x: bolt.x, y: bolt.y}, {x: enemy.x, y: enemy.y}) / bolt.height);
       this.scene.towerLayer.add(bolt);
       this.bolts.push(bolt);
-
+      if(this.settings['unstable'] && Math.random() < 0.3) {
+        let status = ["fire", "ice"][Math.floor(Math.random() * 2)];
+        enemy.applyStatus(status, 2);
+        switch(status) {
+          case "fire": bolt.setTint(0xff000b); break;
+          case "ice": bolt.setTint(0x00d4fa); break;
+        }
+      }
       if(enemy.takeDamage(this.settings["bullet_damage"])) {
-        
         for(let bolt of this.bolts) {
           bolt.destroy();
         }

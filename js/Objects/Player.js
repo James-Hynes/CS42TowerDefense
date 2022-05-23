@@ -6,9 +6,10 @@ class Player {
    * Creates a new player
    */
   constructor(m, l, li) {
-    this.money = m || 3000;
+    this.money = m || 2000;
     this.level = l || 0;
-    this.lives = li || 10000000;
+    this.lives = li || 100;
+    this.max_lives = 150;
 
     this.display_money = m || 3000;
   }
@@ -46,6 +47,14 @@ class Player {
     }
     this.lives -= lives;
     return true;
+  }
+
+  /**
+   * Gives lives up to the player's maximum capacity
+   * @param {number} lives lives to add
+   */
+  addLives(lives) {
+    this.lives = Math.min(this.lives+lives, this.max_lives);
   }
 
 }

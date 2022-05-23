@@ -1,4 +1,17 @@
+/**
+ * Class representing a factory tower
+ */
 class Factory extends Tower {
+  /**
+   * Creates a new factory object
+   * @param {Level} scene 
+   * @param {number} t 
+   * @param {number} x 
+   * @param {number} y 
+   * @param {number} im 
+   * @param {number} base 
+   * @param {number} radius 
+   */
   constructor(scene, t, x, y, im, base, radius) {
     super(scene, t, x, y, im, base, radius);
     this.mines = [];
@@ -12,17 +25,23 @@ class Factory extends Tower {
     this.spawnMine();
   }
 
+  /**
+   * Manages firing
+   */
   update() {
     this.manageBoosts();
     if(this.scene.enemiesLeft) {
       this.counter++;
     }
-    if(this.counter >= this.settings['rate'] && !paused && this.scene.enemiesLeft===true && this.mines.length < this.maxMines) {
+    if(this.counter >= (this.settings['rate'] / this.scene.speedModifier) && !paused && this.scene.enemiesLeft===true && this.mines.length < this.maxMines) {
       this.spawnMine();
       this.counter=0;
     }
   }
 
+  /**
+   * Creates and moves new mine.
+   */
   spawnMine() {
     let tileTarget = this.roadOptions[Math.floor(Math.random() * this.roadOptions.length)];
     let mine = new Barrel(this.scene, this.x, this.y);
@@ -51,6 +70,10 @@ class Factory extends Tower {
     tileTarget.setTower(mine);
   }
 
+  /**
+   * Gets road tiles within radius
+   * @returns {Tile} list of tiles within range
+   */
   getNearestRoadTiles() {
     let currentTile=this.scene.tileMap[Math.floor(this.y/64)][Math.floor(this.x/64)];
     let inRangeTiles = [];
@@ -70,6 +93,9 @@ class Factory extends Tower {
     return sorted;
   }
 
+  /**
+   * Removes all mines and destroys tower.
+   */
   clearTower() {
     for(let mine of this.mines) {
       let tX = Math.floor(mine.x/64);

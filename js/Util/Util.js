@@ -357,6 +357,11 @@ function clearAllRangeCircles(map) {
  * Pauses the game
  */
 function pause() {
+  currentLevel.enemyLayer.getChildren().forEach((a) => {
+    if(a.path_tween) {
+      a.path_tween.pause();
+    }
+  })
   paused = true;
 }
 
@@ -365,6 +370,11 @@ function pause() {
  */
 function play() {
   paused = false;
+  currentLevel.enemyLayer.getChildren().forEach((a) => {
+    if(a.path_tween) {
+      a.path_tween.resume();
+    }
+  })
 }
 
 /**
@@ -452,4 +462,24 @@ function playSoundAtSettingsVolume(sound) {
   let volume = JSON.parse(localStorage.getItem("settings"))["volume"];
   sound.setVolume(volume);
   sound.play();
+}
+
+function toFixed(num, fixed) {
+  var re = new RegExp('^-?\\d+(?:\.\\d{0,' + (fixed || -1) + '})?');
+  return num.toString().match(re)[0];
+}
+
+function shuffle(array) {
+  var m = array.length, t, i;
+  while (m) {
+    i = Math.floor(Math.random() * m--);
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+  return array;
+}
+
+function getTileImageName(tile) {
+  return (getKeyByValue(THEME_KEY[this.config['theme']], parseInt(tile.frame.name.split("_tile")[1].split(".png")[0])-1)) || "ground"
 }

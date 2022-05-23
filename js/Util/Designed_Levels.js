@@ -145,12 +145,12 @@ function padPath(map, path, start, map2) {
           if(map[currPoint.y][currPoint.x+2]==="G") {
             map[currPoint.y][currPoint.x+2]="P";
           }
-          if(map[currPoint.y+1][currPoint.x]==="G") {
-            map[currPoint.y+1][currPoint.x]="P";
-          }
-          if(map[currPoint.y][currPoint.x+1]==="G") {
-            map[currPoint.y][currPoint.x+1]="P";
-          }
+          // if(map[currPoint.y+1][currPoint.x]==="G") {
+            // map[currPoint.y+1][currPoint.x]="P";
+          // }
+          // if(map[currPoint.y][currPoint.x+1]==="G") {
+          //   map[currPoint.y][currPoint.x+1]="P";
+          // }
           for(let j = currPoint.y; j <= nextTurn.y-1; j++) {
             paddedPoints.push(getPoint(map2, currPoint.x, j));
           }

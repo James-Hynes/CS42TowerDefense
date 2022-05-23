@@ -97,8 +97,15 @@ class Tile extends Phaser.GameObjects.Sprite {
       this.tower = new Beacon(scene, t, x, y, im, base, radius);
     }
     this.scene.towerLayer.add(this.tower);
+    if(this.tower instanceof Windmill) {
+      this.tower.createWindmill();
+    }
   }
 
+  /**
+   * Places tower on tile
+   * @param {Tower} tower 
+   */
   setTower(tower) {
     this.scene.towerLayer.add(tower);
     this.occupied = true;
@@ -109,6 +116,9 @@ class Tile extends Phaser.GameObjects.Sprite {
     }
   }
 
+  /**
+   * Removes all decorations and tower from tile.
+   */
   clearTile() {
     this.tower.clearTower();
     this.tower = undefined;

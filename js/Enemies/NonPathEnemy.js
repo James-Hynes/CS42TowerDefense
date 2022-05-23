@@ -37,6 +37,7 @@ class NonPathEnemy extends Enemy {
       }
       this.kill();
     }
+    this.moneyMod=1;
   }
 
   /**

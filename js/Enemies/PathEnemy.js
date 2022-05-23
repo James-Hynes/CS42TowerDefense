@@ -17,10 +17,30 @@ class PathEnemy extends Enemy {
    */
   constructor(scene, x, y, t, s, im, v, h, path) {
     super(scene, x, y, t, s, im, v, h);
-    this.path = path;
+    this.originX = x;
+    this.originY = y;
+    this.path = path.slice(0);
     if(this.path[0].image_type) { // if path isn't already set
       this.setPath();
     }
+    this.prev_pos = {x: this.x, y: this.y};
+    this.next_pos = {x: this.path[1][1], y: this.path[1][2]};
+
+    this.path[0][1] = this.x;
+    this.path[0][2] = this.y;
+
+    this.path_tween = this.scene.tweens.add({
+      targets: this,
+      x: this.path[0][1],
+      y: this.path[0][2],
+      duration: dist_formula({x: this.x, y: this.y}, {x: this.path[0][1], y: this.path[0][2]}) * this.speed,
+      onComplete: () => {
+        this.doNextPathPart();
+      }
+    })
+    this.x = this.path[0][1];
+    this.y = this.path[0][2];
+    this.starting_path = this.path.slice(0);
   }
 
   /**
@@ -30,47 +50,121 @@ class PathEnemy extends Enemy {
    * the enemy needs to stay in the center of those two parts of the path
    */
   setPath() {
+    let i = 0;
     this.path = this.path.map((a) => {
-      if(a.image_type.indexOf("start") > -1) {
-        if(a.image_type.indexOf("Right") > -1 ) {
-          return [a.image_type, a.x - 32, a.y+32, -this.speed];
+      let next_path_piece;
+      if(i < this.path.length -1) {
+        next_path_piece = this.path[i+1];
+      }
+      let distX = 0;
+      let distY = 0;
+      if(next_path_piece) {
+        distX = a.x - next_path_piece.x;
+        distY = a.y - next_path_piece.y;
+      }
+      let general_type = getTile(currentLevel.config['layout'], Math.floor(a.x/64), Math.floor(a.y/64));
+      let image_name = (getKeyByValue(THEME_KEY[this.scene.config['theme']], parseInt(a.frame.name.split("_tile")[1].split(".png")[0])-1));
+      let modX = 0;
+      let modY = 0;
+      if(distX < 0) { // moving right
+        if(image_name.includes("Top")) {
+          modY = 32;
         } else {
-          return [a.image_type, a.x + 32, a.y+32, this.speed];
+          modY = -32;
         }
-      } else if(a.image_type.indexOf("vertical") > -1) {
-        if(a.image_type.indexOf("Right") > -1) {
-          return [a.image_type, a.x - 32, a.y, -this.speed];
+      } else if (distX > 0) { // moving left
+        if(image_name.includes("Top")) {
+          modY = 32;
         } else {
-          return [a.image_type, a.x + 32, a.y, this.speed];
+          modY = -32;
         }
-      } else if(a.image_type.indexOf("horizontal") > -1) {
-        if(a.image_type.indexOf("Top") > -1) {
-          return [a.image_type, a.x, a.y+32, this.speed];
-        } else {
-          return [a.image_type, a.x, a.y-32, -this.speed];
-        }
-      } else if(a.image_type.indexOf("inside") > -1) {
-        if(a.image_type.indexOf("Top") > -1) {
-          if(a.image_type.indexOf("Right") > -1) {
-            return [a.image_type, a.x-32, a.y+32, -this.speed];
-          } else {
-            return [a.image_type, a.x+32, a.y+32, -this.speed];
+      }
+
+      if(distY < 0) { // moving down
+        if(image_name.includes("verticalRight") || image_name.includes("startRight") || image_name.includes("endRight")) {
+          modX = -32;
+          modY = 32;
+        } else if(image_name.includes("verticalLeft") || image_name.includes("startLeft") || image_name.includes("endLeft")) {
+          modX = 32;
+          modY = 32;
+        } else if(image_name.includes('inside')) {
+          if(image_name.includes('Right')) {
+            modX=0;
+            modY=0;
+          } else if(image_name.includes("Left")) {
+            modX=0;
+            modY=0;
           }
-        } else {
-          if(a.image_type.indexOf("Right") > -1) {
-            return [a.image_type, a.x-32, a.y-32, -this.speed];
-          } else {
-            return [a.image_type, a.x+32, a.y-32, -this.speed];
+        }
+      } else if(distY > 0) { // moving up
+        if(image_name.includes("verticalRight") || image_name.includes("startRight") || image_name.includes("endRight")) {
+          modX = -32;
+          modY = 32;
+        } else if(image_name.includes("verticalLeft") || image_name.includes("startLeft") || image_name.includes("endLeft")) {
+          modX = 32;
+          modY = 32;
+        } else if(image_name.includes('inside')) {
+          if(image_name.includes('Right')) {
+            modX=0;
+            modY=32;
+          } else if(image_name.includes("Left")) {
+            modX=0;
+            modY=32;
           }
         }
-      } else if(a.image_type.indexOf("end") > -1) {
-        if(a.image_type.indexOf("Right") > -1 ) {
-          return [a.image_type, a.x - 32, a.y, -this.speed];
-        } else {
-          return [a.image_type, a.x + 32, a.y, this.speed];
-        }
-      };
+      }
+
+      i++;
+      return [image_name, a.x+modX, a.y+modY, parseInt(a.frame.name.split("_tile")[1].split(".png")[0])];
     });
+  }
+
+  /**
+   * Handles the next part of enemy path.
+   */
+  doNextPathPart() {
+    let distX = this.x - this.next_pos['x'];
+    let distY = this.y - this.next_pos['y'];
+
+    if(distX < 0) {
+      this.angle = 0;
+    } else if(distX > 0) {
+      this.angle = 180;
+    }
+
+    if(distY < 0) {
+      this.angle = 90;
+    } else if(distY > 0) {
+      this.angle = 270;
+    }
+    this.path.shift();
+    if(!this.dead && typeof this.scene !== "undefined") {
+      if(this.path.length === 0) {
+        let damage;
+        if(this instanceof Carrier) {
+          damage = 1 + this.soldiers;
+        } else if(this instanceof Tank) {
+          damage = 10000;
+        } else {
+          damage = 1;
+        }
+        if(!this.scene.player.takeLives(damage)) {
+          this.scene.die();
+        }
+        this.destroy();
+        return;
+      }
+      this.path_tween.stop();
+      this.path_tween = this.scene.tweens.add({
+        targets: this,
+        x: this.path[0][1],
+        y: this.path[0][2],
+        duration: dist_formula({x: this.x, y: this.y}, {x: this.path[0][1], y: this.path[0][2]}) * ((24 / this.scene.speedModifier) / this.speed),
+        onComplete: () => {
+          this.doNextPathPart();
+        }
+      })
+    }
   }
 
   /**
@@ -91,86 +185,37 @@ class PathEnemy extends Enemy {
    * Manages the enemies movements, and checks if enemy has finished it's path
    * @param {Level} scene the level the enemy is in
    */
-  update(scene) {
+  update() {
     this.handleLifeBar();
     this.handleStatus();
-    if(this.path.length > 0) {
-      let distX = this.path[0][1] - this.x;
-      let distY = this.path[0][2] - this.y;
+    this.prev_pos = {x: this.x, y: this.y};
+    if(this.path.length >= 2) {
+      this.next_pos = {x: this.path[1][1], y: this.path[1][2]};
+    }
 
-      if(distX === 0 && distY === 0) {
-        if(this.path.length === 1) {
-          let damage;
-          if(this instanceof Carrier) {
-            damage = 1 + this.soldiers;
-          } else if(this instanceof Tank) {
-            damage = 10000;
-          } else {
-            damage = 1;
-          }
-          this.kill();
-          if(!scene.player.takeLives(damage)) {
-            scene.die();
-          }
-          return;
-        }
-        this.path.shift();
-        if(this.soldierPath) {
-          this.soldierPath.shift();
-        }
-        distX = this.path[0][1] - this.x;
-        distY = this.path[0][2] - this.y;
-      }
+    this.checkFinished();
+    this.moneyMod=1;
+  }
 
-
-      if(distX === 0) {
-        if(distY < 0) {
-          this.move('up', this.speed);
-        } else {
-          this.move('down', this.speed);
-        }
-      } else if (distY === 0) {
-        if(distX < 0) {
-          this.move('left', this.speed);
-        } else {
-          this.move('right', this.speed);
-        }
+  /**
+   * Checks if enemy finished path.
+   */
+  checkFinished() {
+    let endPoint = this.path[this.path.length-1];
+    if(this.x > endPoint[1]-32 && this.x < endPoint[1]+32 && this.y > endPoint[2]-32 && this.y < endPoint[2]+32) {
+      let damage;
+      if(this instanceof Carrier) {
+        damage = 1 + this.soldiers;
+      } else if(this instanceof Tank) {
+        damage = 10000;
       } else {
-        if(distX < 0) {
-          this.move('left', this.speed);
-        } else if(distX > 0) {
-          this.move('right', this.speed);
-        } else if(distY < 0) {
-          this.move('up', this.speed);
-        } else if(distY > 0) {
-          this.move('down', this.speed);
-        }
+        damage = 1;
       }
-
-      // if((distX < this.speed && distY < this.speed)) {
-      //   if(this.path.length === 1) {
-      //     let damage;
-      //     if(this instanceof Carrier) {
-      //       damage = 1 + this.soldiers;
-      //     } else if(this instanceof Tank) {
-      //       damage = 10000;
-      //     } else {
-      //       damage = 1;
-      //     }
-      //     this.kill();
-      //     if(!scene.player.takeLives(damage)) {
-      //       scene.die();
-      //     }
-      //     return;
-      //   }
-      //   this.path.shift();
-
-      //   if(this.soldierPath) {
-      //     this.soldierPath.shift();
-      //   }
-      //   this.x = this.path[0][1];
-      //   this.y = this.path[0][2];
-      // }
+      if(!this.scene.player.takeLives(damage)) {
+        this.scene.die();
+      }
+      this.destroy();
+      return;
     }
   }
 }

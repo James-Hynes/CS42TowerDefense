@@ -2,14 +2,6 @@
 
 {
 	"filename": "QuitGamePressed.png",
-	"frame": {"x":0,"y":0,"w":380,"h":90},
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":380,"h":90},
-	"sourceSize": {"w":380,"h":90}
-},
-{
-	"filename": "QuitGameReg.png",
 	"frame": {"x":0,"y":90,"w":380,"h":98},
 	"rotated": false,
 	"trimmed": false,
@@ -17,8 +9,16 @@
 	"sourceSize": {"w":380,"h":98}
 },
 {
+	"filename": "QuitGameReg.png",
+	"frame": {"x":380,"y":90,"w":380,"h":98},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":380,"h":98},
+	"sourceSize": {"w":380,"h":98}
+},
+{
 	"filename": "SettingsPressed.png",
-	"frame": {"x":0,"y":188,"w":380,"h":90},
+	"frame": {"x":0,"y":0,"w":380,"h":90},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":380,"h":90},
@@ -26,7 +26,7 @@
 },
 {
 	"filename": "SettingsReg.png",
-	"frame": {"x":0,"y":278,"w":380,"h":98},
+	"frame": {"x":0,"y":188,"w":380,"h":98},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":380,"h":98},
@@ -34,7 +34,7 @@
 },
 {
 	"filename": "StartGamePressed.png",
-	"frame": {"x":0,"y":376,"w":380,"h":90},
+	"frame": {"x":380,"y":0,"w":380,"h":90},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":380,"h":90},
@@ -42,7 +42,7 @@
 },
 {
 	"filename": "StartGameReg.png",
-	"frame": {"x":0,"y":466,"w":380,"h":98},
+	"frame": {"x":380,"y":188,"w":380,"h":98},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":380,"h":98},
@@ -53,8 +53,8 @@
 	"version": "1.0",
 	"image": "titlescreensheet.png",
 	"format": "RGBA8888",
-	"size": {"w":380,"h":564},
+	"size": {"w":760,"h":286},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:1e67f36efcbf506d421ef69f2d7382e5:8b9a8adf27754e1ffff337345882c134:916c52fc9f1954cd3faeade6bb7b557f$"
+	"smartupdate": "$TexturePacker:SmartUpdate:79728528fe2eda639edd853d81ccb404:5d7a7a12cafab808fff95e64969519a3:916c52fc9f1954cd3faeade6bb7b557f$"
 }
 }

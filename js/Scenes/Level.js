@@ -47,7 +47,30 @@ class Level extends Phaser.Scene {
     this.stats = {waves: 0, kills: 0, money: this.player.money, towers: 0, lives: 0, time: 0};
     this.dead = false;
     this.activeTooltip =  [];
+    this.speedModifier = 1;
+    this.soundManager = new SoundManager(this);
+    
+    this.setupLocalStorage();
+  }
 
+  setupLocalStorage() {
+    let settings = localStorage.getItem("settings");
+    if(settings === null) {
+      localStorage.setItem('settings', "{\"volume\": 0.25, \"autostart\": false, \"music\": true}");
+      console.log('no settings data, setting up defaults');
+    }
+    this.settings = JSON.parse(localStorage.getItem("settings"));
+    let player_data = localStorage.getItem("player_data");
+    if(player_data === null) {
+      console.log('no player data, setting up defaults');
+      localStorage.setItem("player_data", "{\"medals\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \"personal_bests\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}");
+    }
+    this.player_data = JSON.parse(localStorage.getItem("player_data"));
+    let level_save_data = localStorage.getItem("level_save_data");
+    if(level_save_data === null) {
+      localStorage.setItem("level_save_data", "{\"levels\": [[{}, {}, {}],[{}, {}, {}], [{}, {}, {}],[{}, {}, {}],[{}, {}, {}],[{}, {}, {}],[{}, {}, {}],[{}, {}, {}],[{}, {}, {}],[{}, {}, {}]]}");
+    }
+    this.level_save_data = JSON.parse(localStorage.getItem("level_save_data"));
   }
 
   /**
@@ -142,9 +165,12 @@ class Level extends Phaser.Scene {
   preload() {
     this.load.atlas('tdtiles', './res/img/tdtilesheet.png', './res/tdtilesheet.json');
     this.load.atlasXML('explosionanim', './res/img/spritesheet_regularExplosion.png', './res/spritesheet_regularExplosion.xml');
+    this.load.atlasXML('genericitems', './res/img/genericItems_spritesheet_colored.png', './res/genericItems_spritesheet_colored.xml');
+    this.load.atlas('employees', './res/img/employees.png', './res/employees.json');
     this.load.atlas('spawner', './res/img/spawnersheet.png', './res/spawnersheet.json');
     this.load.atlas('lightning', './res/img/lightning.png', './res/lightning.json');
     this.load.atlas('grenade', './res/img/grenadeanim.png', './res/grenadeanim.json');
+    this.load.atlas('windmill', './res/img/windmill.png', './res/windmill.json');
     this.load.atlas('staticexplosion', './res/img/staticexplosion.png', './res/staticexplosion.json');
     this.load.image('RemoveUI', './res/img/RemoveUI.png');
     this.load.image('noUI', './res/img/NO.png');
@@ -215,6 +241,15 @@ class Level extends Phaser.Scene {
     this.load.image("laser4", "./res/img/laser3.png");
     this.load.image("laser5", "./res/img/laser_red.png");
     this.load.image("beige_panel2", './res/img/panel_beige2.png');
+
+    this.load.image("speedup1", './res/img/speedup1.png');
+    this.load.image("speedup2", './res/img/speedup2.png');
+    this.load.image("speedup3", './res/img/speedup3.png');
+
+    this.load.image("soundOff", "./res/img/soundOff.png");
+    this.load.image("soundOn", "./res/img/soundOn.png");
+    this.load.image("musicOff", "./res/img/musicOff.png");
+    this.load.image("musicOn", "./res/img/musicOn.png");
   }
 
   /**
@@ -223,7 +258,6 @@ class Level extends Phaser.Scene {
   create() {
     try {
       // setup layers, music, animations, spritesheet
-      this.music = this.sound.add('backgroundtrack', 1, true);
       this.tileLayer = this.add.layer().setDepth(1);
       this.towerLayer = this.add.layer().setDepth(3);
       this.decorationLayer = this.add.layer().setDepth(2);
@@ -233,15 +267,15 @@ class Level extends Phaser.Scene {
       this.spawnerLayer = this.add.layer().setDepth(4);
       this.anims.create({ key: 'fire', frames: this.anims.generateFrameNames('tdtiles', { prefix: 'towerDefense_tile', start: 295, end: 298, suffix: ".png"}), repeat: 2, frameRate: 8 });
       this.anims.create({key: "explosion", frames: this.anims.generateFrameNames('explosionanim', {prefix: "regularExplosion0", start: 0, end: 8, suffix: ".png"}), frameRate: 8, repeat: 1 });
-      this.anims.create({key: "grenade", frames: this.anims.generateFrameNames('grenade', {prefix: "bombf", start: 1, end: 3, suffix: ".png"}), frameRate: 1.75});
       this.anims.create({key: "lightning", frames: "lightning", frameRate: 8, repeat: -1});
       this.anims.create({key: "staticexplosion", frames: "staticexplosion", frameRate: 16});
       this.settingsMenuLayer = this.add.layer().setDepth(11);
-
+      console.log('safe1');
       let texture = this.textures.get('tdtiles');
       tileFrameNames = texture.getFrameNames();
 
-      this.anims.create({key: "spawner", frames: this.anims.generateFrameNames('spawner', {prefix: "frame", start: 1, end: 12, suffix: ".png"}), repeat: -1, frameRate: 12, repeatDelay: 200});
+      this.soundManager.playMusic('backgroundtrack', {volume: this.settings['volume'] / 5, loop: true});
+      console.log('safe2');
 
       // fade in from black
       let r = this.add.rectangle(0, 0, 1600, 800, 0x000000).setOrigin(0, 0);
@@ -249,194 +283,85 @@ class Level extends Phaser.Scene {
       this.tweens.add({targets: r,alpha: {value: 0, duration: 1000, ease: "Power1"}})
 
       // setup tilemap, then set correct images for path
-      this.tileMap = this.createTileMap(this, this.config['layout']);
+      this.setupTileFunctions();
+      console.log('safe3');
 
-      for(let i = 0; i < this.tileMap.length; i++) {
-        for(let j = 0; j < this.tileMap[i].length; j++) {
-          let im = this.getRoadImageType(this.tileMap, j, i);
-          let t = getTile(this.tileMap, j, i);
-          t.setTexture('tdtiles', im);
-          let c = parseInt(im.split('tile')[1].split(".png")[0]-1);
-          t.setInteractive();
-          t.on("pointerover", () => { 
-            t.alpha = 0.5; 
-            if(t.isOccupied() || t.type !== "G") {
-              if(t.type === "P" && (this.selectedTower === 10 || this.selectedTower === 11)) {
-                let tower_settings = TOWER_TYPES[this.selectedTower];
-                t.setGhostTower(this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["base_img"]]).setOrigin(tower_settings["base_offset_settings"][0], tower_settings["base_offset_settings"][1]), this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["img"]]).setOrigin(tower_settings["img_offset_settings"][0], tower_settings["img_offset_settings"][1]), false );
-              } else {
-                t.setTint(0xFF0000);
-              }
-            } else if(t.type === "G" && !t.isOccupied()) {
-              if(this.selectedTower > -1 && this.selectedTower < 10) {
-                let tower_settings = TOWER_TYPES[this.selectedTower];
-                if(tower_settings["base_img"] > 0) {
-                  t.setGhostTower(this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["base_img"]]).setOrigin(tower_settings["base_offset_settings"][0], tower_settings["base_offset_settings"][1]), this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["img"]]).setOrigin(tower_settings["img_offset_settings"][0], tower_settings["img_offset_settings"][1]), true );
-                } else {
-                  t.setGhostTower(this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["base_img"]]).setOrigin(tower_settings["base_offset_settings"][0], tower_settings["base_offset_settings"][1]), this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["img"]]).setOrigin(tower_settings["img_offset_settings"][0], tower_settings["img_offset_settings"][1]), false );
-                }
-              } else if(this.selectedTower > -1) {
-                t.setTint(0xFF0000);
-              }
-            };
-          });
-          t.on("pointerout", () => { t.alpha = 1; t.setTint(0xFFFFFF); t.removeGhostTower();});
-          t.on("pointerdown", () => { 
-            if(!paused) {
-              if(!t.isOccupied() && t.type === "G") {
-                if(this.selectedTower > -1 && this.selectedTower < 10) {
-                  if(this.player.takeMoney(TOWER_TYPES[this.selectedTower].cost)) {
-                    t.removeGhostTower();
-                    let tower_info = TOWER_TYPES[this.selectedTower];
-                    t.addTower(this, this.selectedTower, t.x, t.y, tower_info["base_img"], tower_info["img"], tower_info["radius"]);
-                    this.stats['towers']++;
-                    this.selectedTower=-1;
-                  }
-                }
-              } else if(t.type === "G" && t.decorations.length > 0) {
-                pause();
-                let panel = this.add.image(640, 400, 'RemoveUI').setOrigin(0.5, 0.5);
-                let noOption = this.add.sprite(590, 440, "noUI").setOrigin(0.5, 0.5).setInteractive({cursor: "pointer"});
-                let yesOption = this.add.sprite(690, 440, "okUI").setOrigin(0.5, 0.5).setInteractive({cursor: "pointer"});
-
-                this.uiLayer.add([panel, noOption, yesOption]);
-
-                noOption.on("pointerdown", () => {
-                  play();
-                  panel.destroy();
-                  noOption.destroy();
-                  yesOption.destroy();
-                });
-
-                yesOption.on("pointerdown", () => {
-                  if(this.player.takeMoney(500)) {
-                    play();
-                    panel.destroy();
-                    noOption.destroy();
-                    yesOption.destroy();
-                    t.clearDecorations();
-                  }
-                });
-              } else if(t.type === "G" && t.tower) {
-                for(let towerUpgradeElement of this.towerUpgradeElements) {
-                  towerUpgradeElement.destroy();
-                }
-                this.towerUpgradeElements = [];
-                clearAllRangeCircles(this.tileMap);
-                t.tower.circle_image.alpha = 0.5;
-                RIGHT_TOWER_UI_PANEL.setTexture('tower_upgrade_panel');
-                for(let towerShopCard of towerShopCards) {
-                  towerShopCard.alpha = 0;
-                }
-                this.createTowerUpgrades(this, t);
-                return;
-              } else if(t.type === "P" && this.selectedTower > 9) {
-                if(this.player.takeMoney(TOWER_TYPES[this.selectedTower].cost)) {
-                  t.removeGhostTower();
-                  let tower_info = TOWER_TYPES[this.selectedTower];
-                  t.addTower(this, this.selectedTower, t.x, t.y, tower_info["base_img"], tower_info["img"], tower_info["radius"]);
-                  this.stats['towers']++;
-                  this.selectedTower=-1;
-                }
-              }
-              clearAllRangeCircles(this.tileMap);
-              RIGHT_TOWER_UI_PANEL.setTexture('paneloutline');
-              RIGHT_TOWER_UI_BG.setTexture('panelbg');
-              for(let towerShopCard of towerShopCards) {
-                towerShopCard.alpha = 1;
-              }
-              this.clearTowerUpgrades();
-            }
-          });
-          t.setImageType(c);
-        }
-    }
-
-    if(!this.rLevel) {
-      let grassTiles = getTilesOfType(this.tileMap, "G");
-      let decoration_images = [129, 130, 131, 132, 133, 134, 135, 136, 303, 304, 305, 306, 307, 308, 438, 439, 440];
-      for(let grassTile of grassTiles) {
-        if(!grassTile.isOccupied() && Math.random() < 0.2 && ( (grassTile.tileX < this.tileMap[0].length-1) && (grassTile.tileY < this.tileMap.length-1) && (grassTile.tileX > 0) && grassTile.tileY > 0)) {
-          let decoration = this.add.sprite((grassTile.x)+32, (grassTile.y)+32, 'tdtiles', tileFrameNames[decoration_images[Math.floor(Math.random() * decoration_images.length)]]).setOrigin(0.5, 0.5);
-          decoration.angle = Math.floor(Math.random() * 360);
-          grassTile.addDecoration(decoration);
+      if(!this.rLevel) {
+        let grassTiles = getTilesOfType(this.tileMap, "G");
+        let decoration_images = [129, 130, 131, 132, 133, 134, 135, 136, 303, 304, 305, 306, 307, 308, 438, 439, 440];
+        for(let grassTile of grassTiles) {
+          if(!grassTile.isOccupied() && Math.random() < 0.2 && ( (grassTile.tileX < this.tileMap[0].length-1) && (grassTile.tileY < this.tileMap.length-1) && (grassTile.tileX > 0) && grassTile.tileY > 0)) {
+            let decoration = this.add.sprite((grassTile.x)+32, (grassTile.y)+32, 'tdtiles', tileFrameNames[decoration_images[Math.floor(Math.random() * decoration_images.length)]]).setOrigin(0.5, 0.5);
+            decoration.angle = Math.floor(Math.random() * 360);
+            grassTile.addDecoration(decoration);
+          }
         }
       }
-    }
-    
-    this.createSpawners(this, this.tileMap);
-    this.createEnds(this, this.tileMap);
+      console.log('safe4');
+      
+      this.createSpawners(this, this.tileMap);
+      this.createEnds(this, this.tileMap);
 
-    LOWER_STATS_UI_PANEL = this.add.sprite(0, 736, 'lower_grey_panel').setOrigin(0, 0);
-    this.uiLayer.add(LOWER_STATS_UI_PANEL);
-    RIGHT_TOWER_UI_BG = this.add.sprite(1248, 0, 'panelbg').setOrigin(0, 0);
-    this.uiLayer.add(RIGHT_TOWER_UI_BG);
-    let NEXT_WAVE_BUTTON = this.add.sprite(1340, 755, 'nextwave').setInteractive({cursor: "pointer"});
-    this.uiLayer.add(NEXT_WAVE_BUTTON);
+      console.log('spawner-ends check');
+      this.setupUI();
+      this.createTowerShopCards();
+      console.log('ui tower cards - check');
 
-    NEXT_WAVE_BUTTON.on(("pointerdown"), () => {
-      this.startNextWave();
-    });
-    
-    let SETTINGS_BUTTON = this.add.sprite(1509, 755, 'settingsbutton').setInteractive({cursor: "pointer"});
-    this.uiLayer.add(SETTINGS_BUTTON);
+      this.getLocalStorageSettings();
+      console.log('lstorage check');
 
-    SETTINGS_BUTTON.on(("pointerdown"), () => {
-      if(!paused) {
-        this.settingsMenuActive = true;
-        pause();
-        this.loadSettingsMenu();
-      }
-    })
+      // this.manageShopCards();
+      console.log('shopcards check');
 
-    RIGHT_TOWER_UI_PANEL = this.add.sprite(1248, 0, 'paneloutline').setOrigin(0, 0);
-    this.uiLayer.add(RIGHT_TOWER_UI_PANEL);
-    this.player_money_text= this.add.text(30, 750, "Money: " + this.player.money, {fontFamily: "Sans-Serif", fontSize:"32px", color:"black"});
-    this.uiLayer.add(this.player_money_text);
+      console.log('safe5');
 
-    this.player_lives_text = this.add.text(570, 750, "Lives: " +this.player.lives, {fontSize:"32px", color:"black", fontFamily: "Sans-Serif"});
-    this.uiLayer.add(this.player_lives_text);
-
-    this.player_waves_text = this.add.text(1100, 750, "Wave: " + parseInt(this.currentWave+1), {fontSize:"32px", color:"black", fontFamily: "Sans-Serif"});
-    this.uiLayer.add(this.player_waves_text);
-
-    for(let i = 0; i < Object.keys(TOWER_TYPES).length; i++) {
-      let towerShopCard = this.add.sprite(1330 + ((i % 2 === 0) ? 0 : 180), (120 * (Math.floor(i / 2)))+65, "tower"+i+"ShopCard").setInteractive({cursor: "pointer"});
-      let isLocked= (i > 6 && i < 10);
-      towerShopCard.on("pointerdown", () => {
-        if(!paused && !isLocked) {
-          this.selectedTower = i;
-        }
+      let musicToggle = this.add.sprite(32, 32, "music" + ((this.settings['music']) ? "On" : "Off")).setInteractive({cursor: "pointer"});
+      musicToggle.on("pointerover", () => {
+        musicToggle.setTint("0x4dcaf7");
       });
-      towerShopCard.on("pointerover", () => {
-        if(!paused && !isLocked) {
-          towerShopCard.setTint(0x42f57e);
-          this.showToolTip(towerShopCard, i);
-        }
+      musicToggle.on("pointerout", () => {
+        musicToggle.setTint("0xFFFFFF");
       });
-      towerShopCard.on("pointerout", () => {
-        if(!paused && !isLocked) {
-          towerShopCard.setTint(0xFFFFFF);
-          this.clearToolTip();
+      musicToggle.on("pointerdown", () => {
+        if(this.settings['music']) {
+          this.changeSetting("music", false);
+        } else {
+          this.changeSetting("music", true);
         }
+        musicToggle.setTexture("music" + ((this.settings['music']) ? "On" : "Off"));
       })
-      this.uiLayer.add(towerShopCard);
-      towerShopCards.push(towerShopCard);
-      if(isLocked) {
-        let lock = this.add.sprite(1330 + ((i % 2 === 0) ? 0 : 180), (120 * (Math.floor(i / 2)))+65, "locked");
-        this.uiLayer.add(lock);
-        towerShopCards.push(lock);
+      this.uiLayer.add(musicToggle);
+      console.log('safe6');
+
+      let volumeToggle = this.add.sprite(84, 32, "sound" + ((this.settings['volume'] > 0) ? "On" : "Off")).setInteractive({cursor: "pointer"});
+      volumeToggle.on("pointerover", () => {
+        volumeToggle.setTint("0x4dcaf7");
+      });
+      volumeToggle.on("pointerout", () => {
+        volumeToggle.setTint("0xFFFFFF");
+      });
+      volumeToggle.on("pointerdown", () => {
+        if(this.settings['volume'] > 0) {
+          this.changeSetting("volume", 0);
+        } else {
+          this.changeSetting("volume", 0.25);
+        }
+        volumeToggle.setTexture("sound" + ((this.settings['volume'] > 0) ? "On" : "Off"));
+      })
+      this.uiLayer.add(volumeToggle);
+      if(this.isProcGen) {
+        this.loadFeedbackMenu();
       }
-    }
-    this.getLocalStorageSettings();
-    if(this.isProcGen) {
-      this.loadFeedbackMenu();
-    }
+      console.log('safe7');
+
+      this.setUpFreeplay();
+
+      console.log('safe8');
+
     } catch(e) {
       this.regenProcGenSettings();
       this.create();
     }
-
     if(this.rLevel) {
       this.regenLevel(this.level_info, this.restart);
     }
@@ -447,44 +372,25 @@ class Level extends Phaser.Scene {
    */
   update() {
     if(this.active) {
+      this.manageShopCards();
       this.stats['time']++;
       this.stats['lives']=this.player.lives;
-      this.music.volume=this.settings['volume'];
-      if(!this.music.isPlaying && this.settings["music"]) {
-        this.music.play();
-      } else if(this.music.isPlaying && !this.settings['music']) {
-        this.music.stop();
+      this.soundManager.music.volume=this.settings['volume'] / 5;
+      if(!this.soundManager.music.isPlaying && this.settings["music"]) {
+        this.soundManager.music.play();
+      } else if(this.soundManager.music.isPlaying && !this.settings['music']) {
+        this.soundManager.music.stop();
       }
       if(!paused) {
-        for(let i = 0; i < this.tileMap.length; i++) {
-          for(let j = 0; j < this.tileMap[i].length; j++) {
-            let t = getTile(this.tileMap, j, i);
-            if(t.isOccupied()) {
-              if(t.one_time_towers.length > 0) {
-                for(let ot of t.one_time_towers) {
-                  ot.update();
-                }
-              }
-              if(t.tower) {
-                t.tower.update();
-                if(t.tower.fireQueued) {
-                  if(t.tower.settings["customFire"]) {
-                    t.tower.settings["customFire"](this, t.tower);
-                  }
-                }
-              }
-            }
-          }
+        for(let tower of this.getTowers().sort((a, b) => {
+          return (((a instanceof Beacon || a instanceof Shop || a instanceof Windmill)) ? 0 : 1) - (((b instanceof Beacon || b instanceof Shop || b instanceof Windmill)) ? 0 : 1)
+        })) {
+          tower.update();
         }
-      
-        for(let enemy of this.enemyLayer.getChildren()) {
-          enemy.update(this);
+        for(let tower of this.getOneTimeTowers()) {
+          tower.update();
         }
-    
-        for(let spawner of this.spawnerLayer.getChildren()) {
-          spawner.update();
-        }
-      
+
         for(let bullet of this.bulletLayer.getChildren()) {
           let hitEnemy = bullet.checkHitEnemy();
           if(hitEnemy) {
@@ -496,7 +402,6 @@ class Level extends Phaser.Scene {
               if((hitEnemy instanceof Tank || hitEnemy instanceof Plane || hitEnemy instanceof Carrier) || bullet.frame.name.includes("251") ) {
                 let explosion = this.add.sprite(hitEnemyCoords[0], hitEnemyCoords[1], "tdtiles", tileFrameNames[297]).setScale(0.01);
                 this.uiLayer.add(explosion);
-                // playSoundAtSettingsVolume(this.sound.add("explosionsound"));
                 runAnimation(explosion, this.tweens.add({targets:explosion ,scale:0.9,ease:'Power2',duration:150,yoyo: true,loop: -1}), 'explosion');
               }
             }
@@ -505,9 +410,17 @@ class Level extends Phaser.Scene {
           }
           bullet.update();
         }
+
+        for(let enemy of this.enemyLayer.getChildren()) {
+          enemy.update();
+        }
+
+        for(let spawner of this.spawnerLayer.getChildren()) {
+          spawner.update();
+        }
       }
   
-      if(!this.complete) {
+      if(!this.complete && !paused) {
         if(this.nextWaveReady && !this.enemiesLeft) {
           if(this.currentWave >= this.waves.length-1) {
             this.complete=true;
@@ -543,13 +456,14 @@ class Level extends Phaser.Scene {
   
               if(nextEnemyCount===0) {
                 this.waves[this.currentWave].shift();
+                spawner.ready = false;
                 if(this.waves[this.currentWave].length === 0) {
                   this.nextWaveReady=true;
                   return;
                 }
               }
             }
-            if(spawner.ready) {
+            if(spawner.ready && spawner.counter >= spawner.rate) {
                 let en;
                 switch(nextEnemy) {
                   case "S": en = new Soldier(this, spawner.x, spawner.y, nextEnemyType, spawner.path); break;
@@ -561,7 +475,8 @@ class Level extends Phaser.Scene {
                 this.enemiesLeft=true;
                 nextEnemyCount--;
                 this.waves[this.currentWave][0] = nextEnemy+""+nextEnemyType+"x"+nextEnemyCount;
-                spawner.ready=false;
+                // spawner.ready=false;
+                spawner.counter=0;
             }
           }
         }
@@ -585,9 +500,194 @@ class Level extends Phaser.Scene {
       if(display_add === 0) {
         this.player.display_money = this.player.money;
       }
+
+      if(this.enemiesLeft && !this.nextWaveReady) {
+        this.NEXT_WAVE_BUTTON.setTexture("speedup" + this.speedModifier);
+      } else if(this.nextWaveReady) {
+        this.NEXT_WAVE_BUTTON.setTexture("nextwave");
+      }
     }
   }
 
+  /**
+   * Sets up UI
+   */
+  setupUI() {
+    LOWER_STATS_UI_PANEL = this.add.sprite(0, 736, 'lower_grey_panel').setOrigin(0, 0);
+    this.uiLayer.add(LOWER_STATS_UI_PANEL);
+    RIGHT_TOWER_UI_BG = this.add.sprite(1248, 0, 'panelbg').setOrigin(0, 0);
+    this.uiLayer.add(RIGHT_TOWER_UI_BG);
+    this.NEXT_WAVE_BUTTON = this.add.sprite(1340, 755, 'nextwave').setInteractive({cursor: "pointer"});
+    this.uiLayer.add(this.NEXT_WAVE_BUTTON);
+
+    this.NEXT_WAVE_BUTTON.on(("pointerdown"), () => {
+      switch(this.NEXT_WAVE_BUTTON.texture.key) {
+        case "speedup1": this.speedModifier = 2; break;
+        case "speedup2": this.speedModifier = 3; break;
+        case "speedup3": this.speedModifier = 1; break;
+        case "nextwave": this.startNextWave(); break;
+      }
+    });
+    
+    let SETTINGS_BUTTON = this.add.sprite(1509, 755, 'settingsbutton').setInteractive({cursor: "pointer"});
+    this.uiLayer.add(SETTINGS_BUTTON);
+
+    SETTINGS_BUTTON.on(("pointerdown"), () => {
+      if(!paused) {
+        this.settingsMenuActive = true;
+        pause();
+        this.spawnerLayer.getChildren().filter((a) => {return a instanceof Spawner}).forEach((a) => {
+          a.update();
+        })
+        this.loadSettingsMenu();
+      }
+    })
+
+    RIGHT_TOWER_UI_PANEL = this.add.sprite(1248, 0, 'paneloutline').setOrigin(0, 0);
+    this.uiLayer.add(RIGHT_TOWER_UI_PANEL);
+    this.player_money_text= this.add.text(30, 750, "Money: " + this.player.money, {fontFamily: "Sans-Serif", fontSize:"32px", color:"black"});
+    this.uiLayer.add(this.player_money_text);
+
+    this.player_lives_text = this.add.text(570, 750, "Lives: " +this.player.lives, {fontSize:"32px", color:"black", fontFamily: "Sans-Serif"});
+    this.uiLayer.add(this.player_lives_text);
+
+    this.player_waves_text = this.add.text(1100, 750, "Wave: " + parseInt(this.currentWave+1), {fontSize:"32px", color:"black", fontFamily: "Sans-Serif"});
+    this.uiLayer.add(this.player_waves_text);
+  }
+
+  /**
+   * Handles tilemap setup and tile interactivity
+   */
+  setupTileFunctions() {
+    this.tileMap = this.createTileMap(this, this.config['layout']);
+
+      for(let i = 0; i < this.tileMap.length; i++) {
+        for(let j = 0; j < this.tileMap[i].length; j++) {
+          let im = this.getRoadImageType(this.tileMap, j, i);
+          let t = getTile(this.tileMap, j, i);
+          t.setTexture('tdtiles', im);
+          let c = parseInt(im.split('tile')[1].split(".png")[0]-1);
+          t.setInteractive();
+          t.on("pointerover", () => { 
+            t.alpha = 0.5; 
+            if(t.tower || t.type !== "G") {
+              if(t.type === "P" && (this.selectedTower === 10 || this.selectedTower === 11)) {
+                let tower_settings = TOWER_TYPES[this.selectedTower];
+                t.setGhostTower(this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["base_img"]]).setOrigin(tower_settings["base_offset_settings"][0], tower_settings["base_offset_settings"][1]), this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["img"]]).setOrigin(tower_settings["img_offset_settings"][0], tower_settings["img_offset_settings"][1]), false );
+              } else {
+                t.setTint(0xFF0000);
+              }
+            } else if(t.type === "G" && !t.isOccupied()) {
+              if(this.selectedTower > -1 && this.selectedTower < 10) {
+                let tower_settings = TOWER_TYPES[this.selectedTower];
+                if(tower_settings["base_img"] > 0) {
+                  t.setGhostTower(this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["base_img"]]).setOrigin(tower_settings["base_offset_settings"][0], tower_settings["base_offset_settings"][1]), this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["img"]]).setOrigin(tower_settings["img_offset_settings"][0], tower_settings["img_offset_settings"][1]), true );
+                } else {
+                  t.setGhostTower(this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["base_img"]]).setOrigin(tower_settings["base_offset_settings"][0], tower_settings["base_offset_settings"][1]), this.add.sprite(t.x, t.y, "tdtiles", tileFrameNames[tower_settings["img"]]).setOrigin(tower_settings["img_offset_settings"][0], tower_settings["img_offset_settings"][1]), false );
+                }
+              } else if(this.selectedTower > -1) {
+                t.setTint(0xFF0000);
+              }
+            };
+          });
+          t.on("pointerout", () => { t.alpha = 1; t.setTint(0xFFFFFF); t.removeGhostTower();});
+          t.on("pointerdown", () => { 
+            if(!paused) {
+              if(!t.isOccupied() && t.type === "G") {
+                if(this.selectedTower > -1 && this.selectedTower < 10) {
+                  if(this.player.takeMoney(TOWER_TYPES[this.selectedTower].cost)) {
+                    t.removeGhostTower();
+                    let tower_info = TOWER_TYPES[this.selectedTower];
+                    t.addTower(this, this.selectedTower, t.x, t.y, tower_info["base_img"], tower_info["img"], tower_info["radius"]);
+                    this.stats['towers']++;
+                    this.selectedTower=-1;
+                  }
+                }
+              } else if(t.type === "G" && t.decorations.length > 0) {
+                t.clearDecorations();
+                if(this.selectedTower > -1 && this.selectedTower < 10) {
+                  if(this.player.takeMoney(TOWER_TYPES[this.selectedTower].cost)) {
+                    t.removeGhostTower();
+                    let tower_info = TOWER_TYPES[this.selectedTower];
+                    t.addTower(this, this.selectedTower, t.x, t.y, tower_info["base_img"], tower_info["img"], tower_info["radius"]);
+                    this.stats['towers']++;
+                    this.selectedTower=-1;
+                  }
+                }
+              } else if(t.type === "G" && t.tower) {
+                for(let towerUpgradeElement of this.towerUpgradeElements) {
+                  towerUpgradeElement.destroy();
+                }
+                this.towerUpgradeElements = [];
+                clearAllRangeCircles(this.tileMap);
+                t.tower.circle_image.alpha = 0.5;
+                RIGHT_TOWER_UI_PANEL.setTexture('tower_upgrade_panel');
+                for(let towerShopCard of towerShopCards) {
+                  towerShopCard.alpha = 0;
+                }
+                this.createTowerUpgrades(this, t);
+                return;
+              } else if(t.type === "P" && this.selectedTower > 9) {
+                if(this.player.takeMoney(TOWER_TYPES[this.selectedTower].cost)) {
+                  t.removeGhostTower();
+                  let tower_info = TOWER_TYPES[this.selectedTower];
+                  t.addTower(this, this.selectedTower, t.x, t.y, tower_info["base_img"], tower_info["img"], tower_info["radius"]);
+                  this.stats['towers']++;
+                  this.selectedTower=-1;
+                }
+              }
+              clearAllRangeCircles(this.tileMap);
+              RIGHT_TOWER_UI_PANEL.setTexture('paneloutline');
+              RIGHT_TOWER_UI_BG.setTexture('panelbg');
+              for(let towerShopCard of towerShopCards) {
+                towerShopCard.alpha = 1;
+              }
+              this.clearTowerUpgrades();
+            }
+          });
+          t.setImageType(c);
+        }
+    }
+  }
+
+  /**
+   * Sets up shop cards on right side of screen
+   */
+  createTowerShopCards() {
+    for(let i = 0; i < Object.keys(TOWER_TYPES).length; i++) {
+      let towerShopCard = this.add.sprite(1330 + ((i % 2 === 0) ? 0 : 180), (120 * (Math.floor(i / 2)))+65, "tower"+i+"ShopCard").setInteractive({cursor: "pointer"});
+      // let isLocked= (i > 6 && i < 10);
+      let isLocked = false;
+      towerShopCard.on("pointerdown", () => {
+        if(!paused && !isLocked) {
+          this.selectedTower = i;
+        }
+      });
+      towerShopCard.on("pointerover", () => {
+        if(!paused && !isLocked) {
+          towerShopCard.setTint(0x42f57e);
+          this.showToolTip(towerShopCard, i);
+        }
+      });
+      towerShopCard.on("pointerout", () => {
+        if(!paused && !isLocked) {
+          towerShopCard.setTint(0xFFFFFF);
+          this.clearToolTip();
+        }
+      })
+      this.uiLayer.add(towerShopCard);
+      towerShopCards.push(towerShopCard);
+      if(isLocked) {
+        let lock = this.add.sprite(1330 + ((i % 2 === 0) ? 0 : 180), (120 * (Math.floor(i / 2)))+65, "locked");
+        this.uiLayer.add(lock);
+        towerShopCards.push(lock);
+      }
+    }
+  }
+
+  /**
+   * Starts the next wave
+   */
   startNextWave() {
     for(let tower of this.towerLayer.getChildren().filter((a) => {return a instanceof Shop || a instanceof Windmill})) {
       tower.onNextWave();
@@ -657,11 +757,33 @@ class Level extends Phaser.Scene {
     });
     freeplaybutton.on("pointerdown", () => {
       if(vD === 1) {
-        alert("Freeplay coming");
+        for(let i = 0; i < 50; i++) {
+          this.waves.push(this.generateFreeplayWave());
+        }
+        this.complete=false;
+        this.sound.add('uiclick').play();
+        glow.destroy();
+        this.tweens.add({
+          targets: this.victoryScreenLayer.getChildren().filter((a) => {return a.type !== "Rectangle"}),
+          y: "+="+direction['y'],
+          x: "+="+direction['x'],
+          duration: 1250,
+          ease: "Bounce.easeOut",
+          easeParams: [4],
+          onComplete: () => {
+            this.victoryScreenLayer.destroy();
+            this.victoryScreenActive=false;
+            play();
+          }
+        });
+        if(this.settings['autostart']) {
+          this.startNextWave();
+        }
       } else {
         this.resetLevel();
         this.active=true;
         this.create();
+        console.log("not here!");
       }
       console.log('load new wave -> toggle wave ready');
     });
@@ -676,7 +798,7 @@ class Level extends Phaser.Scene {
             console.log('go back to main menu -> give player medal if earned');
             this.scene.start("TitleScreen");
             this.active=false;
-            this.music.destroy();
+            this.soundManager.music.destroy();
             play();
           }
         })
@@ -688,6 +810,10 @@ class Level extends Phaser.Scene {
       o.setTint(0xFFFFFF);
     })
     o.on("pointerdown", () => {
+      for(let i = 0; i < 50; i++) {
+        this.waves.push(this.generateFreeplayWave());
+      }
+      this.complete=false;
       this.sound.add('uiclick').play();
       glow.destroy();
       this.tweens.add({
@@ -703,6 +829,9 @@ class Level extends Phaser.Scene {
           play();
         }
       });
+      if(this.settings['autostart']) {
+        this.startNextWave();
+      }
     });
     this.victoryScreenLayer.add([s, m, o, ltext, dtext, etext, wavestext, killstext, moneytext, towerstext, livestext, timetext, freeplaybutton, mainmenubutton]);
 
@@ -746,7 +875,6 @@ class Level extends Phaser.Scene {
     if(typeof this.settingsMenuLayer !== "undefined") {
       this.settingsMenuLayer.destroy();
     }
-    
     this.currentWave=0;
     this.waveCooldown=1001;
     this.complete = false;
@@ -760,6 +888,12 @@ class Level extends Phaser.Scene {
     this.stats = {waves: 0, kills: 0, money: this.player.money, towers: 0, lives: 0, time: 0};
     this.dead = false;
     this.waves = assignArrayValue([WAVES_EASY, WAVES_MEDIUM, WAVES_HARD][this.difficulty]);
+    this.soundManager.removeAllSounds();
+    this.soundManager.removeMusic();
+    for(let tower of towerShopCards) {
+      tower.destroy();
+    }
+    towerShopCards = [];
   }
 
   /**
@@ -767,6 +901,9 @@ class Level extends Phaser.Scene {
    */
   loadFeedbackMenu() {
     pause();
+    this.spawnerLayer.getChildren().filter((a) => {return a instanceof Spawner}).forEach((a) => {
+      a.update();
+    })
     let direction = [{x:+1250,y:+0}, {x:-1250,y:+0}, {x:+0,y:+700}, {x:+0,y:-700}][Math.floor(Math.random() * 4)];
     this.feedbackMenuLayer=this.add.layer().setDepth(12);
     let glow = this.add.rectangle(0, 0, 1600, 800, 0x000000).setOrigin(0, 0);
@@ -877,7 +1014,7 @@ class Level extends Phaser.Scene {
           onComplete: () => {
             this.scene.start("TitleScreen");
             this.active=false;
-            this.music.destroy();
+            this.soundManager.music.destroy();
             this.settingsMenuActive=false;
             play();
           }
@@ -1191,7 +1328,7 @@ class Level extends Phaser.Scene {
           xOffset=-32;
         }
       }
-      let home = scene.add.sprite(tile.x + xOffset, tile.y+yOffset, "home-temp").setScale(0.5, 0.5);
+      let home = scene.add.sprite(tile.x + xOffset, tile.y+yOffset, "home-temp").setScale(0.7);
 
       if(map[tile.tileY-1] && (map[tile.tileY-1][tile.tileX].type === "P")) {
         home.angle=180;
@@ -1339,5 +1476,129 @@ class Level extends Phaser.Scene {
       p.destroy();
     }
     this.activeTooltip=[];
+  }
+
+  manageShopCards() {
+    for(let i = 0; i < towerShopCards.length; i++) {
+      if(this.player.money < TOWER_TYPES[i]['cost']) {
+        towerShopCards[i].setTint(0x403e3d);
+      } else {
+        towerShopCards[i].setTint(0xFFFFFF);
+      }
+    }
+  }
+
+  setUpFreeplay() {
+    let base_freeplay_waves = [];
+    let startWave = Math.max(0, this.waves.length-5);
+    for(let i = startWave; i < this.waves.length; i++) {
+      base_freeplay_waves.push({value: 0, enemies: []})
+      for(let j = 0; j < this.waves[i].length; j++) {
+        let enemy = this.waves[i][j];
+        let enemyType = enemy.split('x')[0][0];
+        let enemyVariation = enemy.split('x')[0][1];
+        let enemyQuantity = parseInt(enemy.split('x')[1]);
+        let enemyValue = parseInt(ENEMY_VALUES[enemyType + enemyVariation])
+        base_freeplay_waves[i-startWave]['value'] += (enemyValue * enemyQuantity)
+        base_freeplay_waves[i-startWave]['enemies'].push({type: enemyType, variation: enemyVariation, quantity: enemyQuantity, value: enemyValue});
+      }
+    }
+    let avg_val = ( base_freeplay_waves.map((a) => {return a.value}).reduce( (a, b) => {return a + b}) / base_freeplay_waves.length);
+
+    this.freeplay_wave_value = (avg_val * 2);
+  }
+
+  generateFreeplayWave() {
+    let points = this.freeplay_wave_value;
+    let wave = [];
+    this.freeplay_wave_value += Math.floor(this.currentWave / 10);
+    while(points > 0) {
+      let enemy = this.chooseEnemy(points);
+      points -= ENEMY_VALUES[enemy];
+      if(!enemy) {
+        break;
+      }
+      wave.push(enemy);
+    }
+
+    let waveData = {};
+    for(let i = 0; i < wave.length; i++) {
+      if(waveData[wave[i]]) {
+        waveData[wave[i]] += 1;
+      } else {
+        waveData[wave[i]] = 1;
+      }
+    }
+    let formattedWave = [];
+    for(let k of Object.keys(waveData)) {
+      formattedWave.push(""+k+"x"+waveData[k]);
+    }
+
+    formattedWave = shuffle(formattedWave);
+
+    let wave_padding = ["S1", "S2", "S3", "S1", "S2", "S3", "P1", "C1"][Math.floor(Math.random() * 8)];
+    let padding_quantity_base = (wave_padding.includes("S") ? 10 * (4 - parseInt(wave_padding[1])) : 3);
+    let wave_tmp = formattedWave.slice(0);
+    for(let i = 0; i < wave_tmp.length; i+=2) {
+      formattedWave.push(wave_padding + "x" + (((Math.floor(Math.random() * (padding_quantity_base-1))))+2));
+    }
+    return formattedWave;
+  }
+
+  chooseEnemy(points) {
+    if(Math.random() < 0.5) {
+      if(Math.random() < 0.3 && points >= ENEMY_VALUES["T4"]) {
+        return "T4";
+      }
+      if(Math.random() < 0.3 && points >= ENEMY_VALUES["T3"]) {
+        return "T3";
+      }
+      if(Math.random() < 0.3 && points >= ENEMY_VALUES["T2"]) {
+        return "T2";
+      }
+      if(Math.random() < 0.3 && points >= ENEMY_VALUES["T1"]) {
+        return "T1";
+      }
+    }
+    if(Math.random() < 0.5) {
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["P2"]) {
+        return "P2";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["P1"]) {
+        return "P1";
+      }
+    }
+    if(Math.random() < 0.5) {
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["C4"]) {
+        return "C4";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["C3"]) {
+        return "C3";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["C2"]) {
+        return "C2";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["C1"]) {
+        return "C1";
+      }
+    }
+    if(Math.random() < 0.5) {
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["S4"]) {
+        return "S4";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["S3"]) {
+        return "S3";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["S2"]) {
+        return "S2";
+      }
+      if(Math.random() < 0.5 && points >= ENEMY_VALUES["S1"]) {
+        return "S1";
+      }
+    }
+    if(points >= ENEMY_VALUES["S1"]) {
+      return "S1";
+    }
+    return false;
   }
 }

@@ -124,7 +124,9 @@ class Tower extends Phaser.GameObjects.Sprite {
     this.inRange = this.getEnemiesInRadius();
     if(this.inRange.length > 0) {
       this.angleTowardsEnemy(this.inRange[0]);
-      this.fire();
+      if(this.fireCounter >= (this.settings["rate"] / this.scene.speedModifier)) {
+        this.fire();
+      }
     }
     this.manageBoosts();
   }
@@ -142,10 +144,8 @@ class Tower extends Phaser.GameObjects.Sprite {
    * Sets fire to ready
    */
   fire() {
-    if(this.fireCounter >= this.settings["rate"]) {
-      this.fireQueued = true;
-      this.fireCounter=0;
-    }
+    this.fireCounter=0;
+    this.settings['customFire'](this.scene, this);
   }
 
   /**
